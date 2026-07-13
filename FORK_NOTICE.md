@@ -42,6 +42,12 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   `onDrag` to unfocus the composer when the user drags the list). Defaults to
   `manual` (unchanged). `src/models/config_models/message_list_configuration.dart`,
   `src/widgets/chat_groupedlist_widget.dart`.
+- **`ChatBubbleConfiguration.onLongPress(Message)`** — tag `chattr-3.1.0-p7`.
+  A clean long-press callback that hands the message to the host directly, so an
+  app can open its own message-actions UI without hijacking `replyPopupBuilder`
+  (empty snackbar + microtask). Enables long-press on its own and bypasses the
+  built-in reaction-popup/reply-snackbar path. `src/models/config_models/
+  chat_bubble_configuration.dart`, `src/widgets/chat_bubble_widget.dart`.
 
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream

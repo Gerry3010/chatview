@@ -34,6 +34,7 @@ class ChatBubbleConfiguration {
     this.inComingChatBubbleConfig,
     this.outgoingChatBubbleConfig,
     this.onDoubleTap,
+    this.onLongPress,
     this.disableLinkPreview = false,
   });
 
@@ -57,6 +58,12 @@ class ChatBubbleConfiguration {
 
   /// Provides callback when user tap twice on chat bubble.
   final ValueSetter<Message>? onDoubleTap;
+
+  /// Provides callback when the user long-presses a chat bubble, giving the
+  /// [Message] directly. When set, long-press is enabled and this fires instead
+  /// of the built-in reaction popup / reply snackbar — a host app can open its
+  /// own message-actions UI without hijacking `replyPopupBuilder`.
+  final ValueSetter<Message>? onLongPress;
 
   /// A flag to disable link preview functionality.
   ///

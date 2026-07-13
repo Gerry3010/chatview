@@ -355,13 +355,19 @@ class _ChatBubbleWidgetState extends State<ChatBubbleWidget> {
                 chatListConfig.chatBubbleConfig?.outgoingChatBubbleConfig,
             isLongPressEnable:
                 (featureActiveConfig?.enableReactionPopup ?? true) ||
-                    (featureActiveConfig?.enableReplySnackBar ?? true),
+                    (featureActiveConfig?.enableReplySnackBar ?? true) ||
+                    chatListConfig.chatBubbleConfig?.onLongPress != null,
             inComingChatBubbleConfig:
                 chatListConfig.chatBubbleConfig?.inComingChatBubbleConfig,
             message: widget.message,
             isMessageBySender: isMessageBySender,
             messageConfig: chatListConfig.messageConfig,
-            onLongPress: widget.onLongPress,
+            // A configured onLongPress(Message) takes over: deliver the message
+            // directly instead of the position-based reaction-popup/snackbar path.
+            onLongPress: chatListConfig.chatBubbleConfig?.onLongPress != null
+                ? (_, __) => chatListConfig.chatBubbleConfig!
+                    .onLongPress!(widget.message)
+                : widget.onLongPress,
             chatBubbleMaxWidth: chatListConfig.chatBubbleConfig?.maxWidth,
             longPressAnimationDuration:
                 chatListConfig.chatBubbleConfig?.longPressAnimationDuration,
