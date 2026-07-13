@@ -3,6 +3,18 @@
 > the agent's best judgement, **no warranty**. Upstream (file issues/PRs there):
 > https://github.com/SimformSolutionsPvtLtd/chatview — see [FORK_NOTICE.md](FORK_NOTICE.md).
 
+## Chattr fork changes (on top of upstream `3.1.0`)
+
+| Patch | Tag | What |
+|-------|-----|------|
+| 24-hour local time | `chattr-3.1.0-p1` | Bubble times / date separators render 24-hour in the device's local timezone (upstream: `hh:mm a` on raw UTC). |
+| `sendOnEnter` | `chattr-3.1.0-p3` | `SendMessageConfiguration.sendOnEnter` — Enter sends, Shift+Enter newlines; platform default (web + desktop on, mobile off); focus-guarded. |
+| `onPaste` | `chattr-3.1.0-p4` | `SendMessageConfiguration.onPaste` + `enableClipboardPaste` — Ctrl/Cmd+V hands the controller to a host paste callback (image/file paste) without consuming native text paste. |
+
+Full detail (files + rationale) in [FORK_NOTICE.md](FORK_NOTICE.md). The sibling
+[`chatview_utils` fork](https://github.com/Gerry3010/chatview_utils) carries the
+`getUserFromId` null-guard and the `updateMessage`/`removeMessage` patches.
+
 ![Banner](https://raw.githubusercontent.com/SimformSolutionsPvtLtd/chatview/main/preview/banner.png)
 
 # ChatView

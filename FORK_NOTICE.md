@@ -12,8 +12,26 @@ This is a **fork of [`chatview`](https://github.com/SimformSolutionsPvtLtd/chatv
   general `chatview` issues/PRs there, not here.
 - **Integration branch:** `chattr` (Chattr patches on top of an upstream release tag).
 
-Chattr-specific changes on top of upstream `3.1.0`:
-- Bubble times / date separators render in **24-hour** format and the **device's
-  local timezone** (upstream rendered `hh:mm a` on the raw UTC value).
+Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
 
-_(more patches land here as the fork evolves — see the `chattr` branch history.)_
+- **24-hour local time** — tag `chattr-3.1.0-p1`. Bubble times and date
+  separators render in **24-hour** format in the **device's local timezone**
+  (upstream rendered `hh:mm a` on the raw UTC value).
+  `src/extensions/extensions.dart`, `src/utils/helper.dart`.
+- **`SendMessageConfiguration.sendOnEnter`** — tag `chattr-3.1.0-p3`. Enter
+  sends the message, **Shift+Enter** inserts a newline. Nullable with a platform
+  default (web + desktop on, Android/iOS off). Promotes the previously web-only
+  handler and adds a focus guard so the global key handler only fires while the
+  composer is focused. `src/widgets/chatui_textfield.dart`,
+  `src/models/config_models/send_message_configuration.dart`.
+- **`SendMessageConfiguration.onPaste` + `enableClipboardPaste`** — tag
+  `chattr-3.1.0-p4`. **Ctrl/Cmd+V** invokes a host paste callback (given the
+  composer's `TextEditingController`) so the app can send a pasted image/file
+  through its own pipeline. The event is **not** consumed, so the field's native
+  text paste still handles plain text. Same platform default as `sendOnEnter`.
+  `src/widgets/chatui_textfield.dart`,
+  `src/models/config_models/send_message_configuration.dart`.
+
+Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
+`chattr-<upstream-version>` after rebasing these patches onto a new upstream
+release. See the `chattr` branch history for the exact diffs.
