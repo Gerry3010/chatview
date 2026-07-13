@@ -47,7 +47,7 @@ Future<String?> onMediaActionButtonPressed(
 /// Returns a formatted string representing the time of the last message.
 /// - If the message was sent less than a minute ago, returns 'Now'.
 /// - If the message was sent less than an hour ago, returns 'X min ago'.
-/// - If the message was sent today, returns the time in 'hh:mm a' format.
+/// - If the message was sent today, returns the time in 24h 'HH:mm' format.
 /// - If the message was sent yesterday, returns 'Yesterday'.
 /// - Otherwise, formats the date using the provided pattern.
 ///
@@ -68,7 +68,7 @@ String formatLastMessageTime(
       7;
 
   if (now.isSameCalendarDay(messageDate)) {
-    return DateFormat('hh:mm a').format(messageDate); // Today
+    return DateFormat('HH:mm').format(messageDate); // Today (Chattr fork: 24h)
   } else if (isLast7Days) {
     return DateFormat('EEEE').format(messageDate);
   } else {

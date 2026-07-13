@@ -45,12 +45,16 @@ import '../widgets/suggestions/suggestions_config_inherited_widget.dart';
 extension TimeDifference on DateTime {
   String getDay(String chatSeparatorDatePattern) {
     final now = DateTime.now();
+    // Chattr fork: render in the device's LOCAL timezone. Supabase timestamptz
+    // parses to a UTC DateTime; comparing/formatting its raw components would
+    // group and label separators by UTC day (off near midnight in +/-N zones).
+    final local = toLocal();
 
     /// Compares only the year, month, and day of the dates, ignoring the time.
     /// For example, `2024-12-09 22:00` and `2024-12-10 00:05` are on different
     /// calendar days but less than 24 hours apart. This ensures the difference
     /// is based on the date, not the total hours between the timestamps.
-    final targetDate = DateTime(year, month, day);
+    final targetDate = DateTime(local.year, local.month, local.day);
     final currentDate = DateTime(now.year, now.month, now.day);
 
     final differenceInDays = currentDate.difference(targetDate).inDays;
@@ -61,7 +65,7 @@ extension TimeDifference on DateTime {
       return PackageStrings.currentLocale.yesterday;
     } else {
       return TimeDifference._cachedDateFormat(chatSeparatorDatePattern)
-          .format(this);
+          .format(local);
     }
   }
 
@@ -83,9 +87,13 @@ extension TimeDifference on DateTime {
       _dateFormatCache['${Intl.getCurrentLocale()}|$pattern'] ??=
           DateFormat(pattern);
 
-  String get getDateFromDateTime => _cachedDateFormat(dateFormat).format(this);
+  String get getDateFromDateTime =>
+      _cachedDateFormat(dateFormat).format(toLocal());
 
-  String get getTimeFromDateTime => _cachedDateFormat('hh:mm a').format(this);
+  // Chattr fork: 24-hour time (no AM/PM) in the device's local timezone.
+  // Upstream used 'hh:mm a' on the raw (UTC) value → 12h AM/PM in UTC.
+  // (A future config flag could make 12/24h selectable; Chattr wants 24h.)
+  String get getTimeFromDateTime => _cachedDateFormat('HH:mm').format(toLocal());
 
   /// Returns `true` if [other] occurs on the same calendar day as
   /// this [DateTime].

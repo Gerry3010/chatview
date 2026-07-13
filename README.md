@@ -1,3 +1,8 @@
+> ⚠️ **AI-agent-maintained fork for the Chattr app.** Auto-synced with upstream
+> weekly and kept current on a best-effort basis by an AI agent; patches applied at
+> the agent's best judgement, **no warranty**. Upstream (file issues/PRs there):
+> https://github.com/SimformSolutionsPvtLtd/chatview — see [FORK_NOTICE.md](FORK_NOTICE.md).
+
 ![Banner](https://raw.githubusercontent.com/SimformSolutionsPvtLtd/chatview/main/preview/banner.png)
 
 # ChatView
