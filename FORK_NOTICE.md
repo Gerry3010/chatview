@@ -31,6 +31,12 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   text paste still handles plain text. Same platform default as `sendOnEnter`.
   `src/widgets/chatui_textfield.dart`,
   `src/models/config_models/send_message_configuration.dart`.
+- **Public composer barrel `package:chatview/composer.dart`** — tag
+  `chattr-3.1.0-p5`. A stable public surface for apps that build a **custom
+  send-message composer** (send-message widgets, sub-widgets, layout constants,
+  ambient config getters) so they no longer import `package:chatview/src/...`.
+  If upstream reorganizes its internals, only this one barrel needs to follow —
+  the app stays put. `lib/composer.dart`.
 
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
