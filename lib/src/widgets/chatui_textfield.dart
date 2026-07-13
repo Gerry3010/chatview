@@ -123,13 +123,19 @@ class _ChatUITextFieldState extends State<ChatUITextField> {
     if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
       controller = RecorderController();
     }
-    if (kIsWeb) {
-      if (_attachHardwareKeyboardHandler() case final handler) {
-        _keyboardHandler = handler;
-        HardwareKeyboard.instance.addHandler(handler);
-      }
+    if (_sendOnEnter) {
+      final handler = _attachHardwareKeyboardHandler();
+      _keyboardHandler = handler;
+      HardwareKeyboard.instance.addHandler(handler);
     }
   }
+
+  /// Whether Enter sends the message. Uses [SendMessageConfiguration.sendOnEnter]
+  /// when set, otherwise the platform default: on for web + desktop (physical
+  /// keyboard), off for Android/iOS.
+  bool get _sendOnEnter =>
+      sendMessageConfig.sendOnEnter ??
+      (kIsWeb || !(Platform.isIOS || Platform.isAndroid));
 
   @override
   void dispose() {
@@ -152,16 +158,21 @@ class _ChatUITextFieldState extends State<ChatUITextField> {
     });
   }
 
-  // Attaches a hardware keyboard handler to handle Enter key events.
-  // This is only applicable for web platforms.
-  // It checks if the Enter key is pressed then sends the message
-  // or inserts a new line based on whether Enter + Shift is pressed.
+  // Attaches a hardware keyboard handler to handle Enter key events, used when
+  // [sendOnEnter] is active (web + desktop by default, or when explicitly
+  // enabled). It checks if the Enter key is pressed then sends the message or
+  // inserts a new line based on whether Enter + Shift is pressed.
   bool Function(KeyEvent) _attachHardwareKeyboardHandler() {
     return (KeyEvent event) {
       if (event is! KeyDownEvent ||
           event.logicalKey != LogicalKeyboardKey.enter) {
         return false;
       }
+
+      // Only act while our composer is focused — this is a global keyboard
+      // handler, so without this guard Enter meant for a dialog or another
+      // field would send a message.
+      if (!widget.focusNode.hasFocus) return false;
 
       final pressedKeys = HardwareKeyboard.instance.logicalKeysPressed;
       final isShiftPressed = pressedKeys.any((key) =>

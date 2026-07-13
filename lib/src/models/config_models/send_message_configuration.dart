@@ -54,6 +54,7 @@ class SendMessageConfiguration {
     this.selectedImageViewBuilder,
     this.sendButtonStyle,
     this.editLabel,
+    this.sendOnEnter,
   });
 
   /// Used to give background color to text field.
@@ -133,6 +134,18 @@ class SendMessageConfiguration {
   /// If not provided, falls back to the locale-resolved value of
   /// `PackageStrings.currentLocale.editing`.
   final String? editLabel;
+
+  /// Whether pressing the Enter key sends the message.
+  ///
+  /// - `true`  — Enter sends the message; Shift+Enter inserts a newline.
+  /// - `false` — Enter inserts a newline; sending is only via the send button.
+  /// - `null`  — platform default: enabled on web and desktop (physical
+  ///   keyboard), disabled on Android/iOS where Enter conventionally inserts a
+  ///   newline and the on-screen send button is used.
+  ///
+  /// The handler only fires while the composer's text field has focus, so it
+  /// never intercepts Enter meant for a dialog or other field.
+  final bool? sendOnEnter;
 }
 
 class ImagePickerIconsConfiguration {
