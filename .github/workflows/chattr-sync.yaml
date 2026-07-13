@@ -1,0 +1,87 @@
+name: chattr fork sync
+
+# Keeps this AI-agent-maintained fork current: weekly it checks upstream for a
+# new release, rebases our `chattr` patch branch onto it, validates the package
+# (dart analyze), and pushes the rebased branch + a `chattr-<version>` tag.
+# On a rebase conflict or analyze failure the job FAILS → GitHub emails the
+# owner (no external notifier needed). chattr's own integration test + PR that
+# bumps the dependency ref runs separately (where chattr's toolchain + secrets
+# live). Manual run: Actions → "chattr fork sync" → Run workflow.
+
+on:
+  schedule:
+    - cron: '23 4 * * 1' # weekly, Mon 04:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: chattr-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chattr
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Configure git + add upstream (derived from fork parent)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'chattr-fork-sync'
+          git config user.email 'noreply@geraldhofbauer.net'
+          UPSTREAM=$(gh api "repos/${{ github.repository }}" --jq .parent.full_name)
+          echo "UPSTREAM=$UPSTREAM" >> "$GITHUB_ENV"
+          git remote add upstream "https://github.com/$UPSTREAM.git"
+          git fetch -q upstream --tags
+
+      - name: Detect new upstream release
+        id: detect
+        run: |
+          LATEST=$(git ls-remote --tags upstream \
+            | sed -E 's#.*refs/tags/##; s/\^\{\}$//' \
+            | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)
+          BASE=$(cat .chattr-base 2>/dev/null || echo 0.0.0)
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          if [ "$LATEST" = "$BASE" ]; then
+            echo "new=0" >> "$GITHUB_OUTPUT"
+            echo "::notice::up to date on upstream $BASE"
+          else
+            echo "new=1" >> "$GITHUB_OUTPUT"
+            echo "::notice::new upstream $LATEST (was $BASE)"
+          fi
+
+      - name: Rebase chattr patches onto new upstream
+        if: steps.detect.outputs.new == '1'
+        run: |
+          git rebase "${{ steps.detect.outputs.latest }}"
+          echo "${{ steps.detect.outputs.latest }}" > .chattr-base
+          git commit -am "sync: rebased chattr patches onto upstream ${{ steps.detect.outputs.latest }}"
+
+      - uses: subosito/flutter-action@v2
+        if: steps.detect.outputs.new == '1'
+        with:
+          flutter-version: '3.24.0'
+          cache: true
+
+      - name: Validate package (pub get + analyze)
+        if: steps.detect.outputs.new == '1'
+        run: |
+          flutter pub get
+          dart analyze
+
+      - name: Push rebased branch + tag
+        if: steps.detect.outputs.new == '1'
+        run: |
+          git push origin chattr
+          git tag -f "chattr-${{ steps.detect.outputs.latest }}"
+          git push -f origin "chattr-${{ steps.detect.outputs.latest }}"
+          echo "::notice::pushed chattr + tag chattr-${{ steps.detect.outputs.latest }}"
