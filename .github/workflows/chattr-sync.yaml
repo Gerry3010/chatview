@@ -85,3 +85,24 @@ jobs:
           git tag -f "chattr-${{ steps.detect.outputs.latest }}"
           git push -f origin "chattr-${{ steps.detect.outputs.latest }}"
           echo "::notice::pushed chattr + tag chattr-${{ steps.detect.outputs.latest }}"
+
+      # pipepush notify → project "chattr-fork-sync", pipeline "fork-rebase".
+      # Only fires on a real sync (success) or any failure — the weekly
+      # "up to date" no-op stays silent so it doesn't spam a push notification.
+      - name: Notify pipepush — synced
+        if: steps.detect.outputs.new == '1'
+        env:
+          PIPEPUSH_TOKEN: ${{ secrets.PIPEPUSH_TOKEN }}
+          PIPEPUSH_SERVER: https://pipepush.geraldhofbauer.net
+        run: |
+          curl -sf -X POST "$PIPEPUSH_SERVER/api/webhook" -H "Content-Type: application/json" \
+            -d "{\"token\":\"$PIPEPUSH_TOKEN\",\"status\":\"success\",\"pipeline\":\"fork-rebase\",\"branch\":\"chattr\",\"commit\":\"$GITHUB_SHA\",\"runId\":\"$GITHUB_RUN_ID\",\"message\":\"${{ github.repository }} rebased onto upstream ${{ steps.detect.outputs.latest }} ✅ (tag chattr-${{ steps.detect.outputs.latest }})\"}" || true
+
+      - name: Notify pipepush — failure
+        if: failure()
+        env:
+          PIPEPUSH_TOKEN: ${{ secrets.PIPEPUSH_TOKEN }}
+          PIPEPUSH_SERVER: https://pipepush.geraldhofbauer.net
+        run: |
+          curl -sf -X POST "$PIPEPUSH_SERVER/api/webhook" -H "Content-Type: application/json" \
+            -d "{\"token\":\"$PIPEPUSH_TOKEN\",\"status\":\"failure\",\"pipeline\":\"fork-rebase\",\"branch\":\"chattr\",\"commit\":\"$GITHUB_SHA\",\"runId\":\"$GITHUB_RUN_ID\",\"message\":\"${{ github.repository }} fork sync FAILED — rebase conflict or analyze error; check GitHub Actions\"}" || true
