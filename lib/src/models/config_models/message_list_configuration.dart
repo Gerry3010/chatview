@@ -44,7 +44,14 @@ class ChatBackgroundConfiguration {
     this.loadingWidget,
     this.messageTimeAnimationCurve = Curves.decelerate,
     this.messageSorter,
+    this.scrollViewKeyboardDismissBehavior,
   });
+
+  /// How the message list dismisses the on-screen keyboard while scrolling.
+  /// Defaults to [ScrollViewKeyboardDismissBehavior.manual] (unchanged upstream
+  /// behavior); set [ScrollViewKeyboardDismissBehavior.onDrag] to unfocus the
+  /// composer when the user drags the list (standard messenger behavior).
+  final ScrollViewKeyboardDismissBehavior? scrollViewKeyboardDismissBehavior;
 
   /// Provides background color of chat view.
   final Color? backgroundColor;

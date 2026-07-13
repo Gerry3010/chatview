@@ -347,6 +347,9 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
                 return ListView.builder(
                   key: _listKey.value,
                   controller: widget.scrollController,
+                  keyboardDismissBehavior:
+                      chatBackgroundConfig.scrollViewKeyboardDismissBehavior ??
+                          ScrollViewKeyboardDismissBehavior.manual,
                   // When reaction popup is being appeared at that user should
                   // not scroll.
                   physics:

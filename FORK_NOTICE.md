@@ -37,6 +37,11 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   ambient config getters) so they no longer import `package:chatview/src/...`.
   If upstream reorganizes its internals, only this one barrel needs to follow —
   the app stays put. `lib/composer.dart`.
+- **`ChatBackgroundConfiguration.scrollViewKeyboardDismissBehavior`** — tag
+  `chattr-3.1.0-p6`. Exposes the message list's `keyboardDismissBehavior` (e.g.
+  `onDrag` to unfocus the composer when the user drags the list). Defaults to
+  `manual` (unchanged). `src/models/config_models/message_list_configuration.dart`,
+  `src/widgets/chat_groupedlist_widget.dart`.
 
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream

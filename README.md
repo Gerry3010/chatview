@@ -11,6 +11,7 @@
 | `sendOnEnter` | `chattr-3.1.0-p3` | `SendMessageConfiguration.sendOnEnter` — Enter sends, Shift+Enter newlines; platform default (web + desktop on, mobile off); focus-guarded. |
 | `onPaste` | `chattr-3.1.0-p4` | `SendMessageConfiguration.onPaste` + `enableClipboardPaste` — Ctrl/Cmd+V hands the controller to a host paste callback (image/file paste) without consuming native text paste. |
 | composer barrel | `chattr-3.1.0-p5` | Public `package:chatview/composer.dart` exposing the custom-composer surface, so apps stop importing `package:chatview/src/...` (rebase-safe). |
+| keyboard dismiss | `chattr-3.1.0-p6` | `ChatBackgroundConfiguration.scrollViewKeyboardDismissBehavior` exposes the message list's `keyboardDismissBehavior` (e.g. `onDrag`). |
 
 Full detail (files + rationale) in [FORK_NOTICE.md](FORK_NOTICE.md). The sibling
 [`chatview_utils` fork](https://github.com/Gerry3010/chatview_utils) carries the
