@@ -28,6 +28,13 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../values/typedefs.dart';
 
+/// Called when the user pastes into the composer (Ctrl/Cmd+V) and
+/// [SendMessageConfiguration.onPaste] is set. Receives the composer's
+/// [TextEditingController] so the host app can read the clipboard, send any
+/// image/file through its own pipeline, and/or insert plain text at the cursor.
+typedef ComposerPasteCallback = Future<void> Function(
+    TextEditingController controller);
+
 class SendMessageConfiguration {
   const SendMessageConfiguration({
     this.voiceRecordingConfiguration = const VoiceRecordingConfiguration(),
@@ -55,6 +62,8 @@ class SendMessageConfiguration {
     this.sendButtonStyle,
     this.editLabel,
     this.sendOnEnter,
+    this.enableClipboardPaste,
+    this.onPaste,
   });
 
   /// Used to give background color to text field.
@@ -146,6 +155,22 @@ class SendMessageConfiguration {
   /// The handler only fires while the composer's text field has focus, so it
   /// never intercepts Enter meant for a dialog or other field.
   final bool? sendOnEnter;
+
+  /// Whether Ctrl/Cmd+V in the composer invokes [onPaste].
+  ///
+  /// - `true`  — intercept paste and call [onPaste].
+  /// - `false` — never intercept; the text field's default paste applies.
+  /// - `null`  — platform default: on for web + desktop (physical keyboard),
+  ///   off on Android/iOS. Requires [onPaste] to be set to have any effect.
+  ///
+  /// Like [sendOnEnter], the handler only fires while the composer is focused.
+  final bool? enableClipboardPaste;
+
+  /// Invoked on Ctrl/Cmd+V when [enableClipboardPaste] resolves to `true`.
+  /// The host app reads the clipboard here (e.g. to send a pasted image/file
+  /// through its own pipeline) and/or inserts plain text into the supplied
+  /// controller. When null, paste is not intercepted.
+  final ComposerPasteCallback? onPaste;
 }
 
 class ImagePickerIconsConfiguration {

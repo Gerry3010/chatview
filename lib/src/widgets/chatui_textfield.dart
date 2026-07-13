@@ -123,19 +123,28 @@ class _ChatUITextFieldState extends State<ChatUITextField> {
     if (!kIsWeb && (Platform.isIOS || Platform.isAndroid)) {
       controller = RecorderController();
     }
-    if (_sendOnEnter) {
+    if (_sendOnEnter || _pasteActive) {
       final handler = _attachHardwareKeyboardHandler();
       _keyboardHandler = handler;
       HardwareKeyboard.instance.addHandler(handler);
     }
   }
 
+  /// Platform default for physical-keyboard composer shortcuts: on for web +
+  /// desktop, off for Android/iOS (where Enter/paste use the soft keyboard).
+  static bool get _physicalKeyboardDefault =>
+      kIsWeb || !(Platform.isIOS || Platform.isAndroid);
+
   /// Whether Enter sends the message. Uses [SendMessageConfiguration.sendOnEnter]
-  /// when set, otherwise the platform default: on for web + desktop (physical
-  /// keyboard), off for Android/iOS.
+  /// when set, otherwise the platform default.
   bool get _sendOnEnter =>
-      sendMessageConfig.sendOnEnter ??
-      (kIsWeb || !(Platform.isIOS || Platform.isAndroid));
+      sendMessageConfig.sendOnEnter ?? _physicalKeyboardDefault;
+
+  /// Whether Ctrl/Cmd+V is intercepted and delegated to
+  /// [SendMessageConfiguration.onPaste]. Requires a paste callback to be set.
+  bool get _pasteActive =>
+      sendMessageConfig.onPaste != null &&
+      (sendMessageConfig.enableClipboardPaste ?? _physicalKeyboardDefault);
 
   @override
   void dispose() {
@@ -158,21 +167,33 @@ class _ChatUITextFieldState extends State<ChatUITextField> {
     });
   }
 
-  // Attaches a hardware keyboard handler to handle Enter key events, used when
-  // [sendOnEnter] is active (web + desktop by default, or when explicitly
-  // enabled). It checks if the Enter key is pressed then sends the message or
-  // inserts a new line based on whether Enter + Shift is pressed.
+  // Global hardware-keyboard handler for the composer's physical-keyboard
+  // shortcuts: Enter-to-send ([sendOnEnter]) and Ctrl/Cmd+V paste
+  // ([enableClipboardPaste] + [onPaste]). It only acts while the composer is
+  // focused so it never captures keys meant for a dialog or another field.
   bool Function(KeyEvent) _attachHardwareKeyboardHandler() {
     return (KeyEvent event) {
-      if (event is! KeyDownEvent ||
-          event.logicalKey != LogicalKeyboardKey.enter) {
+      if (event is! KeyDownEvent) return false;
+      if (!widget.focusNode.hasFocus) return false;
+
+      final key = event.logicalKey;
+
+      // Ctrl/Cmd+V → let the host paste hook read the clipboard for an
+      // image/file. We deliberately DON'T consume the event: the text field's
+      // native paste still runs, so plain text pastes normally (with correct
+      // encoding). An image-only clipboard has no text for the field to insert,
+      // so only the hook's media handling is visible.
+      if (key == LogicalKeyboardKey.keyV && _pasteActive) {
+        final hw = HardwareKeyboard.instance;
+        if (hw.isControlPressed || hw.isMetaPressed) {
+          sendMessageConfig.onPaste?.call(widget.textEditingController);
+        }
         return false;
       }
 
-      // Only act while our composer is focused — this is a global keyboard
-      // handler, so without this guard Enter meant for a dialog or another
-      // field would send a message.
-      if (!widget.focusNode.hasFocus) return false;
+      if (key != LogicalKeyboardKey.enter || !_sendOnEnter) {
+        return false;
+      }
 
       final pressedKeys = HardwareKeyboard.instance.logicalKeysPressed;
       final isShiftPressed = pressedKeys.any((key) =>
