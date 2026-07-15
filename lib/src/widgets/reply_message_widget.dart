@@ -51,13 +51,20 @@ class ReplyMessageWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final chatController = ChatViewInheritedWidget.of(context)?.chatController;
     final currentUser = chatController?.currentUser;
+    // chattr fork (p10): the quote header must name the AUTHOR of the quoted
+    // message (`replyTo`), not whoever sent the reply (`replyBy`) — upstream
+    // resolved `replyBy` here, so a reply showed "reply to <the replier>".
+    // Bubble alignment still follows the reply's sender via `replyBySender`.
     final replyBySender = message.replyMessage.replyBy == currentUser?.id;
+    final repliedToCurrentUser =
+        message.replyMessage.replyTo == currentUser?.id;
     final textTheme = Theme.of(context).textTheme;
     final replyMessage = message.replyMessage.message;
     final messagedUser =
-        chatController?.getUserFromId(message.replyMessage.replyBy);
-    final replyBy =
-        replyBySender ? PackageStrings.currentLocale.you : messagedUser?.name;
+        chatController?.getUserFromId(message.replyMessage.replyTo);
+    final replyBy = repliedToCurrentUser
+        ? PackageStrings.currentLocale.you
+        : messagedUser?.name;
     return GestureDetector(
       onTap: onTap,
       child: Container(

@@ -66,6 +66,15 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   editable-text toolbar when unset (passing `null` straight through would remove
   the menu). `src/models/config_models/send_message_configuration.dart`,
   `src/widgets/chatui_textfield.dart`.
+- **Reply-quote author + empty-message fixes** — tag `chattr-3.1.0-p10`. Two
+  upstream-behaviour fixes: (1) `ReplyMessageWidget` named the reply-quote header
+  from `replyBy` (the reply's sender) instead of `replyTo` (the quoted message's
+  author), so a reply read "reply to <the replier>"; it now resolves `replyTo`
+  (bubble alignment still follows the sender). (2) `String.isAllEmoji` returned
+  `true` for the empty string, so an empty custom message (e.g. a host "unread"
+  divider) hit the 30px emoji-bubble path and never reached
+  `customMessageBuilder`, rendering as a blank gap; `''` is now not all-emoji.
+  `src/widgets/reply_message_widget.dart`, `src/extensions/extensions.dart`.
 
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream

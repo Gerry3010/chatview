@@ -143,6 +143,11 @@ extension ValidateString on String {
   }
 
   bool get isAllEmoji {
+    // chattr fork (p10): an empty string is NOT "all emoji". Upstream returned
+    // true for '' (0 == 0), so empty custom messages (e.g. the "unread" divider)
+    // hit the 30px emoji-bubble path and never reached customMessageBuilder,
+    // rendering as a blank gap.
+    if (runes.isEmpty) return false;
     final unEmojified = _emojiParser.parseEmojis(this);
     return runes.length == unEmojified.length;
   }
