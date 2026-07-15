@@ -64,6 +64,7 @@ class SendMessageConfiguration {
     this.sendOnEnter,
     this.enableClipboardPaste,
     this.onPaste,
+    this.composerContextMenuBuilder,
   });
 
   /// Used to give background color to text field.
@@ -171,6 +172,15 @@ class SendMessageConfiguration {
   /// through its own pipeline) and/or inserts plain text into the supplied
   /// controller. When null, paste is not intercepted.
   final ComposerPasteCallback? onPaste;
+
+  /// (chattr fork, p9) Custom context-menu builder for the COMPOSER text field
+  /// (the long-press / right-click selection toolbar). Wired straight into
+  /// `TextField.contextMenuBuilder`. Lets a host app add its own entries — e.g.
+  /// a "Paste image" action on iOS, where the native menu offers paste for text
+  /// only, so a clipboard image looks un-pasteable even though the pipeline
+  /// supports it. When null, the platform-default editable-text toolbar is used
+  /// (unchanged behaviour).
+  final EditableTextContextMenuBuilder? composerContextMenuBuilder;
 }
 
 class ImagePickerIconsConfiguration {

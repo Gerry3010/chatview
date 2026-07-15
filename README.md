@@ -14,6 +14,7 @@
 | keyboard dismiss | `chattr-3.1.0-p6` | `ChatBackgroundConfiguration.scrollViewKeyboardDismissBehavior` exposes the message list's `keyboardDismissBehavior` (e.g. `onDrag`). |
 | clean long-press | `chattr-3.1.0-p7` | `ChatBubbleConfiguration.onLongPress(Message)` delivers the message directly, so apps open their own actions UI without hijacking `replyPopupBuilder`. |
 | slide-to-timestamp | `chattr-3.1.0-p8` | `ChatBubbleConfiguration.timestampRevealBuilder` + `onSwipeToTimestamp` — an opposite-direction swipe peeks a host-built timestamp chip (built lazily) and a hard swipe opens a per-recipient sheet; reply gesture untouched. |
+| composer context menu | `chattr-3.1.0-p9` | `SendMessageConfiguration.composerContextMenuBuilder` threads a custom `contextMenuBuilder` into the composer TextField (host adds e.g. an iOS "Paste image" entry); platform default kept when unset. |
 
 Full detail (files + rationale) in [FORK_NOTICE.md](FORK_NOTICE.md). The sibling
 [`chatview_utils` fork](https://github.com/Gerry3010/chatview_utils) carries the

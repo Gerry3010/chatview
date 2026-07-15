@@ -294,6 +294,16 @@ class _ChatUITextFieldState extends State<ChatUITextField> {
                         child: TextField(
                           focusNode: widget.focusNode,
                           controller: widget.textEditingController,
+                          // chattr fork (p9): let the host add composer context-
+                          // menu entries (e.g. iOS "Paste image"). Fall back to
+                          // the platform default so copy/paste/select-all stay
+                          // — passing null would remove the toolbar entirely.
+                          contextMenuBuilder:
+                              sendMessageConfig.composerContextMenuBuilder ??
+                                  (context, editableTextState) =>
+                                      AdaptiveTextSelectionToolbar.editableText(
+                                        editableTextState: editableTextState,
+                                      ),
                           style: textFieldConfig?.textStyle ??
                               const TextStyle(color: Colors.white),
                           maxLines: textFieldConfig?.maxLines ?? 5,

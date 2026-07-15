@@ -58,6 +58,14 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   frame — and the reply gesture is untouched. `src/models/config_models/
   chat_bubble_configuration.dart`, `src/widgets/chat_bubble_widget.dart`,
   `src/widgets/swipe_to_reply.dart`. Test: `test/swipe_to_reply_test.dart`.
+- **`SendMessageConfiguration.composerContextMenuBuilder`** — tag
+  `chattr-3.1.0-p9`. Threads a custom `contextMenuBuilder` into the COMPOSER's
+  `TextField` (upstream hard-wired the default toolbar), so a host app can add
+  its own selection-menu entries — e.g. a "Paste image" action on iOS, where the
+  native menu offers paste for text only. Falls back to the platform-default
+  editable-text toolbar when unset (passing `null` straight through would remove
+  the menu). `src/models/config_models/send_message_configuration.dart`,
+  `src/widgets/chatui_textfield.dart`.
 
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
