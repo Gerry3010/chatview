@@ -30,6 +30,8 @@ class SwipeToReply extends StatefulWidget {
     required this.onSwipe,
     required this.child,
     this.isMessageByCurrentUser = true,
+    this.timestampRevealBuilder,
+    this.onSwipeToTimestamp,
   });
 
   /// Provides callback when user swipes chat bubble from left side.
@@ -44,77 +46,152 @@ class SwipeToReply extends StatefulWidget {
   /// and `false` if it is authored by someone else.
   final bool isMessageByCurrentUser;
 
+  /// (chattr fork, p8) Builds the widget revealed in the gutter when the user
+  /// swipes the bubble in the OPPOSITE direction from the reply gesture
+  /// (WhatsApp-style "peek the timestamp"). The bubble slides aside and
+  /// progressively uncovers it; releasing snaps it back. Invoked **lazily** —
+  /// only once a reveal drag begins — so the (possibly expensive) build isn't
+  /// paid for every bubble on every frame. `null` ⇒ opposite swipes are a
+  /// no-op and the reply gesture is unaffected.
+  final ValueGetter<Widget?>? timestampRevealBuilder;
+
+  /// (chattr fork, p8) Fired once when an opposite-direction swipe passes the
+  /// reveal threshold — used to open a detailed per-recipient timestamp sheet
+  /// (e.g. for group chats). Optional; the peek works without it.
+  final VoidCallback? onSwipeToTimestamp;
+
   @override
   State<SwipeToReply> createState() => _SwipeToReplyState();
 }
 
 class _SwipeToReplyState extends State<SwipeToReply> {
   double paddingValue = 0;
+  double revealValue = 0;
   double trackPaddingValue = 0;
   double initialTouchPoint = 0;
   bool isCallBackTriggered = false;
+  bool isRevealTriggered = false;
+
+  // Lazily-built reveal content, cached for the duration of one reveal drag.
+  Widget? _revealWidget;
 
   late bool isMessageByCurrentUser = widget.isMessageByCurrentUser;
 
   final paddingLimit = 50;
+
+  // The reveal side needs a little more travel than the reply icon so a
+  // compact "delivered/read HH:MM" strip becomes fully visible before the
+  // threshold callback fires.
+  final revealLimit = 96;
   final double replyIconSize = 25;
+
+  bool get _revealEnabled =>
+      widget.timestampRevealBuilder != null ||
+      widget.onSwipeToTimestamp != null;
 
   @override
   Widget build(BuildContext context) {
-    return !(chatViewIW?.featureActiveConfig.enableSwipeToReply ?? true)
-        ? widget.child
-        : GestureDetector(
-            onHorizontalDragStart: (details) =>
-                initialTouchPoint = details.globalPosition.dx,
-            onHorizontalDragEnd: (details) => setState(
-              () {
-                paddingValue = 0;
-                isCallBackTriggered = false;
-              },
-            ),
-            onHorizontalDragUpdate: _onHorizontalDragUpdate,
-            child: Stack(
+    final replyEnabled =
+        chatViewIW?.featureActiveConfig.enableSwipeToReply ?? true;
+    if (!replyEnabled && !_revealEnabled) return widget.child;
+
+    return GestureDetector(
+      onHorizontalDragStart: (details) =>
+          initialTouchPoint = details.globalPosition.dx,
+      onHorizontalDragEnd: (details) => setState(
+        () {
+          paddingValue = 0;
+          revealValue = 0;
+          isCallBackTriggered = false;
+          isRevealTriggered = false;
+          _revealWidget = null;
+        },
+      ),
+      onHorizontalDragUpdate: (details) =>
+          _onHorizontalDragUpdate(details, replyEnabled),
+      child: Stack(
+        alignment: isMessageByCurrentUser
+            ? Alignment.centerRight
+            : Alignment.centerLeft,
+        fit: StackFit.passthrough,
+        children: [
+          // Reply icon, on the reply-gesture side.
+          ReplyIcon(
+            replyIconSize: replyIconSize,
+            animationValue: paddingValue > replyIconSize
+                ? (paddingValue) / (paddingLimit)
+                : 0.0,
+          ),
+          // Timestamp reveal, on the OPPOSITE side. Painted before the bubble
+          // so the bubble covers it until slid aside (progressive reveal).
+          if (_revealWidget != null && revealValue > 0)
+            Align(
               alignment: isMessageByCurrentUser
-                  ? Alignment.centerRight
-                  : Alignment.centerLeft,
-              fit: StackFit.passthrough,
-              children: [
-                ReplyIcon(
-                  replyIconSize: replyIconSize,
-                  animationValue: paddingValue > replyIconSize
-                      ? (paddingValue) / (paddingLimit)
-                      : 0.0,
-                ),
-                Padding(
-                  padding: EdgeInsets.only(
-                    right: isMessageByCurrentUser ? paddingValue : 0,
-                    left: isMessageByCurrentUser ? 0 : paddingValue,
-                  ),
-                  child: widget.child,
-                ),
-              ],
+                  ? Alignment.centerLeft
+                  : Alignment.centerRight,
+              child: Opacity(
+                opacity: (revealValue / revealLimit).clamp(0.0, 1.0),
+                child: _revealWidget,
+              ),
             ),
-          );
+          Padding(
+            padding: EdgeInsets.only(
+              right: isMessageByCurrentUser ? paddingValue : revealValue,
+              left: isMessageByCurrentUser ? revealValue : paddingValue,
+            ),
+            child: widget.child,
+          ),
+        ],
+      ),
+    );
   }
 
-  void _onHorizontalDragUpdate(DragUpdateDetails details) {
-    final swipeDistance = isMessageByCurrentUser
+  void _onHorizontalDragUpdate(DragUpdateDetails details, bool replyEnabled) {
+    // Positive = reply direction; negative = timestamp-reveal direction.
+    final signedDistance = isMessageByCurrentUser
         ? (initialTouchPoint - details.globalPosition.dx)
         : (details.globalPosition.dx - initialTouchPoint);
-    if (swipeDistance >= 0 && trackPaddingValue < paddingLimit) {
-      setState(() {
-        paddingValue = swipeDistance;
-      });
-    } else if (paddingValue >= paddingLimit) {
-      if (!isCallBackTriggered) {
-        widget.onSwipe();
-        isCallBackTriggered = true;
+
+    if (signedDistance >= 0) {
+      // ── Reply gesture (unchanged behaviour) ──────────────────────────
+      if (replyEnabled) {
+        if (revealValue != 0) revealValue = 0;
+        if (trackPaddingValue < paddingLimit) {
+          setState(() {
+            paddingValue = signedDistance;
+          });
+        } else if (paddingValue >= paddingLimit) {
+          if (!isCallBackTriggered) {
+            widget.onSwipe();
+            isCallBackTriggered = true;
+          }
+        } else {
+          setState(() {
+            paddingValue = 0;
+          });
+        }
       }
-    } else {
-      setState(() {
-        paddingValue = 0;
-      });
+    } else if (_revealEnabled) {
+      // ── Timestamp reveal (opposite direction) ────────────────────────
+      final revealDistance = -signedDistance;
+      if (paddingValue != 0) paddingValue = 0;
+      // Build the reveal content once, on the first reveal frame.
+      _revealWidget ??= widget.timestampRevealBuilder?.call();
+      if (trackPaddingValue > -revealLimit) {
+        setState(() {
+          revealValue = revealDistance;
+        });
+      } else if (revealValue >= revealLimit) {
+        if (!isRevealTriggered) {
+          widget.onSwipeToTimestamp?.call();
+          isRevealTriggered = true;
+        }
+      } else {
+        setState(() {
+          revealValue = 0;
+        });
+      }
     }
-    trackPaddingValue = swipeDistance;
+    trackPaddingValue = signedDistance;
   }
 }

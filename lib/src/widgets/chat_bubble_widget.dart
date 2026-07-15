@@ -350,6 +350,21 @@ class _ChatBubbleWidgetState extends State<ChatBubbleWidget> {
         SwipeToReply(
           isMessageByCurrentUser: isMessageBySender,
           onSwipe: isMessageBySender ? onLeftSwipe : onRightSwipe,
+          // chattr fork (p8): opposite-direction swipe peeks the timestamp and,
+          // past threshold, opens the per-recipient timestamp sheet. Passed as a
+          // lazy builder so the per-bubble reveal chip is only built when a
+          // reveal drag actually begins (not for every bubble on every frame).
+          timestampRevealBuilder: chatListConfig
+                      .chatBubbleConfig?.timestampRevealBuilder ==
+                  null
+              ? null
+              : () => chatListConfig.chatBubbleConfig!.timestampRevealBuilder!(
+                  widget.message),
+          onSwipeToTimestamp:
+              chatListConfig.chatBubbleConfig?.onSwipeToTimestamp != null
+                  ? () => chatListConfig.chatBubbleConfig!
+                      .onSwipeToTimestamp!(widget.message)
+                  : null,
           child: MessageView(
             outgoingChatBubbleConfig:
                 chatListConfig.chatBubbleConfig?.outgoingChatBubbleConfig,

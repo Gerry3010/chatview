@@ -48,6 +48,16 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   (empty snackbar + microtask). Enables long-press on its own and bypasses the
   built-in reaction-popup/reply-snackbar path. `src/models/config_models/
   chat_bubble_configuration.dart`, `src/widgets/chat_bubble_widget.dart`.
+- **`ChatBubbleConfiguration.timestampRevealBuilder` + `onSwipeToTimestamp`** —
+  tag `chattr-3.1.0-p8`. WhatsApp-style "slide-to-timestamp": swiping a bubble in
+  the OPPOSITE direction from the reply gesture (which upstream ignored — the
+  negative-distance branch just reset) peeks a host-built timestamp chip in the
+  gutter, and a hard swipe past the threshold fires `onSwipeToTimestamp(Message)`
+  (e.g. to open a per-recipient info sheet). The reveal chip is built lazily via
+  a `ValueGetter<Widget?>` — only once a reveal drag begins, never per bubble per
+  frame — and the reply gesture is untouched. `src/models/config_models/
+  chat_bubble_configuration.dart`, `src/widgets/chat_bubble_widget.dart`,
+  `src/widgets/swipe_to_reply.dart`. Test: `test/swipe_to_reply_test.dart`.
 
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream

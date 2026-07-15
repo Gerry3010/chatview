@@ -35,6 +35,8 @@ class ChatBubbleConfiguration {
     this.outgoingChatBubbleConfig,
     this.onDoubleTap,
     this.onLongPress,
+    this.onSwipeToTimestamp,
+    this.timestampRevealBuilder,
     this.disableLinkPreview = false,
   });
 
@@ -64,6 +66,16 @@ class ChatBubbleConfiguration {
   /// of the built-in reaction popup / reply snackbar — a host app can open its
   /// own message-actions UI without hijacking `replyPopupBuilder`.
   final ValueSetter<Message>? onLongPress;
+
+  /// (chattr fork, p8) Fired with the [Message] when the user swipes a bubble
+  /// in the OPPOSITE direction from reply past the reveal threshold — used to
+  /// open a detailed per-recipient timestamp sheet (e.g. for group chats).
+  final ValueSetter<Message>? onSwipeToTimestamp;
+
+  /// (chattr fork, p8) Builds the compact widget revealed while opposite-swiping
+  /// a bubble (WhatsApp-style "peek the delivered/read time"). Receives the
+  /// [Message]; return `null`/omit to disable the peek for a bubble.
+  final Widget? Function(Message message)? timestampRevealBuilder;
 
   /// A flag to disable link preview functionality.
   ///
