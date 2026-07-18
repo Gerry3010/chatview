@@ -31,6 +31,7 @@ class ChatBubble {
     this.color,
     this.borderRadius,
     this.textStyle,
+    this.emojiSize,
     this.messageTimeTextStyle,
     this.padding,
     this.margin,
@@ -51,6 +52,12 @@ class ChatBubble {
 
   /// Used for giving text style of chat bubble.
   final TextStyle? textStyle;
+
+  /// chattr fork p13: font size for EMOJI runs inside a text message, so inline
+  /// emojis can render larger than the surrounding text (which stays at
+  /// [textStyle]'s size). When null, emojis inherit the text size (default,
+  /// unchanged behaviour). Only the size is overridden — colour etc. are kept.
+  final double? emojiSize;
 
   /// Used for giving text style of the message timestamp.
   ///

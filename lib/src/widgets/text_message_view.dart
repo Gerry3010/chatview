@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 
 import '../extensions/extensions.dart';
 import '../utils/constants/constants.dart';
+import '../utils/emoji_text.dart';
 import 'link_preview.dart';
 import 'reaction_widget.dart';
 
@@ -111,8 +112,15 @@ class TextMessageView extends StatelessWidget {
             extractedUrls: extractedUrls,
             normalTextStyle: effectiveTextStyle,
           )
-        : Text(
-            textMessage,
+        : Text.rich(
+            TextSpan(
+              children: emojiUpscaledSpans(
+                textMessage,
+                emojiSize: isMessageBySender
+                    ? outgoingChatBubbleConfig?.emojiSize
+                    : inComingChatBubbleConfig?.emojiSize,
+              ),
+            ),
             style: effectiveTextStyle,
           );
     final messageWidget = isSelectable

@@ -162,6 +162,14 @@ class ReplyMessageWidget extends StatelessWidget {
                                     )
                                   : Text(
                                       replyMessage,
+                                      // chattr fork p13: cap the sent-bubble
+                                      // reply quote so a long text / media
+                                      // filename can't grow into a many-line
+                                      // block that breaks the bubble layout
+                                      // (mirrors the composer banner's 1-line
+                                      // cap in ReplyMessageTypeView).
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                       style: repliedMessageConfig?.textStyle ??
                                           textTheme.bodyMedium!
                                               .copyWith(color: Colors.black),

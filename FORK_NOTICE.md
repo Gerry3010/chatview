@@ -97,6 +97,20 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   `src/widgets/profile_image_widget.dart`, `profile_circle.dart`,
   `chat_bubble_widget.dart`, `chat_view_appbar.dart`.
 
+- **Reply-quote cap + inline emoji size** — tag `chattr-3.1.0-p13`. Two message
+  rendering fixes. (a) The SENT-bubble reply quote (`ReplyMessageWidget`) rendered
+  `Text(replyMessage)` with no line cap, so a long text or media filename grew
+  into a many-line block that broke the bubble; now `maxLines: 2` + ellipsis
+  (mirrors the composer banner's cap). (b) New `ChatBubble.emojiSize` (double?):
+  inline EMOJI runs of a text message render at that size instead of the body
+  size — bare/inline emojis at the text size read as too small. `TextMessageView`
+  renders the message via `Text.rich`, splitting emoji vs non-emoji runs
+  (`src/utils/emoji_text.dart`, tested); emoji-run spans carry only a `fontSize`
+  override so colour is preserved, and ZWJ/variation-selector sequences are never
+  split. Opt-in: `emojiSize == null` keeps a single unstyled span (unchanged).
+  `src/widgets/reply_message_widget.dart`, `text_message_view.dart`,
+  `src/models/chat_bubble.dart`, `src/utils/emoji_text.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.
