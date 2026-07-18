@@ -30,6 +30,7 @@ class ProfileImageWidget extends StatelessWidget {
   const ProfileImageWidget({
     super.key,
     this.imageUrl,
+    this.userName,
     this.defaultAvatarImage = Constants.profileImage,
     this.circleRadius,
     this.assetImageErrorBuilder,
@@ -43,6 +44,12 @@ class ProfileImageWidget extends StatelessWidget {
 
   /// Allow user to pass image url of user's profile picture.
   final String? imageUrl;
+
+  /// Optional display name used to render an initials-circle fallback when no
+  /// [imageUrl] resolves (chattr fork p12). When null/empty the widget keeps the
+  /// original empty behaviour (a zero-size box), so callers that don't pass a
+  /// name are unaffected.
+  final String? userName;
 
   /// Flag to check whether image is network or asset
   final ImageType? imageType;
@@ -101,9 +108,55 @@ class ProfileImageWidget extends StatelessWidget {
             fit: BoxFit.cover,
             errorBuilder: assetImageErrorBuilder ?? _errorWidget,
           ),
-        _ => const SizedBox.shrink(),
+        _ => _fallbackAvatar(radius),
       },
     );
+  }
+
+  /// Fallback when no image resolves. With a [userName] this renders a filled
+  /// initials circle (deterministic colour per name) so a picture-less user
+  /// keeps a stable avatar slot instead of collapsing to 0px (chattr fork p12).
+  /// Without a name it preserves the historical empty box.
+  Widget _fallbackAvatar(double radius) {
+    final name = userName?.trim() ?? '';
+    if (name.isEmpty) return const SizedBox.shrink();
+    final initials = _initials(name);
+    final bg = _colorFor(name);
+    return Container(
+      height: radius,
+      width: radius,
+      alignment: Alignment.center,
+      color: bg,
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+          fontSize: radius * 0.4,
+        ),
+      ),
+    );
+  }
+
+  static String _initials(String name) {
+    final parts = name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) {
+      return parts.first.substring(0, 1).toUpperCase();
+    }
+    return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
+        .toUpperCase();
+  }
+
+  /// Deterministic background colour derived from the name, so a given user
+  /// always gets the same circle. Uses Material primaries for a pleasant spread.
+  static Color _colorFor(String name) {
+    var hash = 0;
+    for (final code in name.codeUnits) {
+      hash = (hash * 31 + code) & 0x7fffffff;
+    }
+    final palette = Colors.primaries;
+    return palette[hash % palette.length].shade400;
   }
 
   Widget _networkImageErrorWidget(

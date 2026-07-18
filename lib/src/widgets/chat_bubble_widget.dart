@@ -202,6 +202,7 @@ class _ChatBubbleWidgetState extends State<ChatBubbleWidget> {
           : profileCircleConfig?.bottomPadding ?? 2,
       profileCirclePadding: profileCircleConfig?.padding,
       imageUrl: messagedUser?.profilePhoto,
+      userName: messagedUser?.name,
       imageType: messagedUser?.imageType,
       defaultAvatarImage:
           messagedUser?.defaultAvatarImage ?? Constants.profileImage,

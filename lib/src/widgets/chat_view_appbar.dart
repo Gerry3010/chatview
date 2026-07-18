@@ -34,6 +34,7 @@ class ChatViewAppBar extends StatelessWidget {
     this.backGroundColor,
     this.userStatus,
     this.profilePicture,
+    this.userName,
     this.chatTitleTextStyle,
     this.userStatusTextStyle,
     this.backArrowColor,
@@ -61,6 +62,10 @@ class ChatViewAppBar extends StatelessWidget {
 
   /// Allow user to change profile picture in appbar.
   final String? profilePicture;
+
+  /// Optional display name for the initials-circle fallback shown in the appbar
+  /// when [profilePicture] is empty (chattr fork p12).
+  final String? userName;
 
   /// Allow user to change text style of chat title.
   final TextStyle? chatTitleTextStyle;
@@ -132,11 +137,13 @@ class ChatViewAppBar extends StatelessWidget {
             Expanded(
               child: Row(
                 children: [
-                  if (profilePicture != null)
+                  if (profilePicture != null ||
+                      (userName?.isNotEmpty ?? false))
                     Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: ProfileImageWidget(
                         imageUrl: profilePicture,
+                        userName: userName,
                         defaultAvatarImage: defaultAvatarImage,
                         assetImageErrorBuilder: assetImageErrorBuilder,
                         networkImageErrorBuilder: networkImageErrorBuilder,

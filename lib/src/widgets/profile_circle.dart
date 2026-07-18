@@ -30,6 +30,7 @@ class ProfileCircle extends StatelessWidget {
     super.key,
     required this.bottomPadding,
     this.imageUrl,
+    this.userName,
     this.profileCirclePadding,
     this.circleRadius,
     this.onTap,
@@ -48,6 +49,10 @@ class ProfileCircle extends StatelessWidget {
   /// Or
   /// Allow user to pass image data of user's profile picture in base64.
   final String? imageUrl;
+
+  /// Optional display name for the initials-circle fallback when [imageUrl]
+  /// is empty (chattr fork p12).
+  final String? userName;
 
   /// Field to define image type [network, asset or base64]
   final ImageType? imageType;
@@ -88,6 +93,7 @@ class ProfileCircle extends StatelessWidget {
         child: ProfileImageWidget(
           circleRadius: circleRadius ?? 16,
           imageUrl: imageUrl,
+          userName: userName,
           defaultAvatarImage: defaultAvatarImage,
           assetImageErrorBuilder: assetImageErrorBuilder,
           networkImageErrorBuilder: networkImageErrorBuilder,

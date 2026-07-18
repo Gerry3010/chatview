@@ -85,6 +85,18 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   keyset-pagination boundary). Hosts that pass their own `messageSorter` are
   unaffected. `src/widgets/chat_groupedlist_widget.dart`.
 
+- **Initials-circle avatar fallback** — tag `chattr-3.1.0-p12`. Upstream
+  `ProfileImageWidget` collapsed to a 0px `SizedBox.shrink` whenever no image
+  resolved (the `defaultAvatarImage` fallback is unreachable — the switch keys on
+  `imageUrl`, not on the default), so a picture-less user's grouped bubble jumped
+  to the far left. Added an optional `userName` to `ProfileImageWidget` (threaded
+  through `ProfileCircle`, the incoming-bubble avatar in `chat_bubble_widget`, and
+  the `ChatViewAppBar` header slot): when there is no image but a name is given,
+  it renders a filled initials circle with a deterministic per-name colour instead
+  of the empty box. Callers that pass no `userName` keep the original behaviour.
+  `src/widgets/profile_image_widget.dart`, `profile_circle.dart`,
+  `chat_bubble_widget.dart`, `chat_view_appbar.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.
