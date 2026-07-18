@@ -465,9 +465,18 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
 
   List<Message> sortMessage(List<Message> messages) {
     final elements = messages.toList();
+    // When no custom [messageSorter] is supplied, sort newest-first by
+    // createdAt with the message id as a deterministic tiebreak. createdAt is
+    // not a unique key (sub-second collisions, mixed clock sources) and
+    // List.sort is not stable, so without the tiebreak equal timestamps render
+    // in an arbitrary, jittering order. The id tiebreak makes this a strict
+    // total order (chattr p11).
     elements.sort(
       chatBackgroundConfig.messageSorter ??
-          (a, b) => b.createdAt.compareTo(a.createdAt),
+          (a, b) {
+            final byTime = b.createdAt.compareTo(a.createdAt);
+            return byTime != 0 ? byTime : b.id.compareTo(a.id);
+          },
     );
     // [elements] is already a fresh copy, so it can be returned directly for
     // the ascending case instead of allocating another list.

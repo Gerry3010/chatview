@@ -75,6 +75,15 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   divider) hit the 30px emoji-bubble path and never reached
   `customMessageBuilder`, rendering as a blank gap; `''` is now not all-emoji.
   `src/widgets/reply_message_widget.dart`, `src/extensions/extensions.dart`.
+- **Stable default message sort** — tag `chattr-3.1.0-p11`. When
+  `ChatBackgroundConfiguration.sortEnable` is on and no custom `messageSorter`
+  is supplied, `sortMessage`'s fallback comparator sorted only by `createdAt`.
+  `createdAt` is not a unique key (sub-second collisions, mixed clock sources)
+  and `List.sort` is not stable, so equal timestamps rendered in an arbitrary,
+  jittering order. The fallback now breaks ties by message `id`, making it a
+  strict total order (deterministic across rebuilds/devices; also safe as a
+  keyset-pagination boundary). Hosts that pass their own `messageSorter` are
+  unaffected. `src/widgets/chat_groupedlist_widget.dart`.
 
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
