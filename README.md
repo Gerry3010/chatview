@@ -19,6 +19,7 @@
 | stable default sort | `chattr-3.1.0-p11` | When `sortEnable` is on with no custom `messageSorter`, the fallback comparator breaks `createdAt` ties by message `id` — a strict total order (deterministic across rebuilds/devices, safe as a keyset-pagination boundary). |
 | initials avatar fallback | `chattr-3.1.0-p12` | `userName` on `ProfileImageWidget`/`ProfileCircle`/`ChatViewAppBar` renders a deterministic initials circle when no image resolves, instead of a 0px collapse — lets a host show other-user avatars everywhere without picture-less users breaking the layout. |
 | reply cap + inline emoji size | `chattr-3.1.0-p13` | Sent-bubble reply quote is capped at `maxLines: 2`+ellipsis (a long text/filename can't grow a many-line quote); and `ChatBubble.emojiSize` renders inline EMOJI runs of a message larger than the body text (opt-in, null = unchanged). |
+| appbar title/avatar tap | `chattr-3.1.0-p14` | `ChatViewAppBar.onTitleTap` (`VoidCallback?`) wraps the profile-picture + title area in a `GestureDetector` so the host can open a profile/contact sheet from the header. Opt-in — null keeps the area non-interactive. |
 
 Full detail (files + rationale) in [FORK_NOTICE.md](FORK_NOTICE.md). The sibling
 [`chatview_utils` fork](https://github.com/Gerry3010/chatview_utils) carries the

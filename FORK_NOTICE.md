@@ -111,6 +111,13 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   `src/widgets/reply_message_widget.dart`, `text_message_view.dart`,
   `src/models/chat_bubble.dart`, `src/utils/emoji_text.dart`.
 
+- **AppBar title/avatar tap** — tag `chattr-3.1.0-p14`. New
+  `ChatViewAppBar.onTitleTap` (`VoidCallback?`): the profile-picture + title
+  area is wrapped in a `GestureDetector` so the host can open a profile/contact
+  sheet from the header. Opt-in — `null` keeps the area non-interactive
+  (`HitTestBehavior.deferToChild`), so default behaviour is unchanged.
+  `src/widgets/chat_view_appbar.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.

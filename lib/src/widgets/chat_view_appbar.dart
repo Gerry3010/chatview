@@ -49,6 +49,7 @@ class ChatViewAppBar extends StatelessWidget {
     this.networkImageErrorBuilder,
     this.imageType = ImageType.network,
     this.networkImageProgressIndicatorBuilder,
+    this.onTitleTap,
   });
 
   /// Allow user to change colour of appbar.
@@ -110,6 +111,11 @@ class ChatViewAppBar extends StatelessWidget {
   final NetworkImageProgressIndicatorBuilder?
       networkImageProgressIndicatorBuilder;
 
+  /// Called when the user taps the profile picture + title area (chattr fork
+  /// p14). When null the area is not tappable, so default behaviour is
+  /// unchanged. Lets the app open a profile/contact sheet from the header.
+  final VoidCallback? onTitleTap;
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -135,47 +141,55 @@ class ChatViewAppBar extends StatelessWidget {
                     ),
                   ),
             Expanded(
-              child: Row(
-                children: [
-                  if (profilePicture != null ||
-                      (userName?.isNotEmpty ?? false))
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: ProfileImageWidget(
-                        imageUrl: profilePicture,
-                        userName: userName,
-                        defaultAvatarImage: defaultAvatarImage,
-                        assetImageErrorBuilder: assetImageErrorBuilder,
-                        networkImageErrorBuilder: networkImageErrorBuilder,
-                        imageType: imageType,
-                        networkImageProgressIndicatorBuilder:
-                            networkImageProgressIndicatorBuilder,
+              child: GestureDetector(
+                // Opaque so taps on the empty space beside the title also
+                // register; a null callback leaves the area non-interactive.
+                behavior: onTitleTap == null
+                    ? HitTestBehavior.deferToChild
+                    : HitTestBehavior.opaque,
+                onTap: onTitleTap,
+                child: Row(
+                  children: [
+                    if (profilePicture != null ||
+                        (userName?.isNotEmpty ?? false))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ProfileImageWidget(
+                          imageUrl: profilePicture,
+                          userName: userName,
+                          defaultAvatarImage: defaultAvatarImage,
+                          assetImageErrorBuilder: assetImageErrorBuilder,
+                          networkImageErrorBuilder: networkImageErrorBuilder,
+                          imageType: imageType,
+                          networkImageProgressIndicatorBuilder:
+                              networkImageProgressIndicatorBuilder,
+                        ),
+                      ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            chatTitle,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: chatTitleTextStyle ??
+                                const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.25,
+                                ),
+                          ),
+                          if (userStatus != null)
+                            Text(
+                              userStatus!,
+                              style: userStatusTextStyle,
+                            ),
+                        ],
                       ),
                     ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          chatTitle,
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: chatTitleTextStyle ??
-                              const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.25,
-                              ),
-                        ),
-                        if (userStatus != null)
-                          Text(
-                            userStatus!,
-                            style: userStatusTextStyle,
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             if (actions != null) ...actions!,
