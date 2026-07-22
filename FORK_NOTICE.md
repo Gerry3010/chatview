@@ -130,10 +130,17 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
      (no grouping). `src/models/chat_bubble.dart`,
      `src/widgets/text_message_view.dart`.
   2. Reaction pill: a reactor not in the chat's user list (`getUserFromId` →
-     null — e.g. your OWN reaction, since the current user isn't an "other
-     user") no longer renders an empty default-avatar circle, which left a dead
-     ~20px slot to the right of the emoji. Now renders nothing for a null user.
-     `src/extensions/extensions.dart`.
+     null — e.g. a user who left) no longer renders an empty default-avatar
+     circle, which left a dead ~20px slot to the right of the emoji. Now renders
+     nothing for a null user. `src/extensions/extensions.dart`.
+
+- **Reaction pill: initials for a picture-less reactor** — tag
+  `chattr-3.1.0-p16`. Refines p15(2): `getUserProfilePicture` now passes
+  `userName` to `ProfileImageWidget`, so a reactor WITH a user record but NO
+  profile photo (incl. your own reaction) renders a filled initials circle (the
+  p12 fallback) instead of the empty default-avatar that still left a dead slot
+  to the right of the emoji. Truly-unknown reactors (null user) still render
+  nothing. `src/extensions/extensions.dart`.
 
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream

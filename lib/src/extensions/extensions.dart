@@ -180,14 +180,19 @@ extension ValidateString on String {
     EdgeInsets? profileCirclePadding,
   }) {
     final user = getChatUser(this);
-    // Own/unknown reactor (not in the chat's user list → null): render nothing
-    // instead of an empty default-avatar circle, which otherwise leaves a dead
-    // ~20px slot to the right of the emoji on your own reaction (chattr fork).
+    // Unknown reactor (not in the chat's user list at all → null, e.g. a user
+    // who left): render nothing instead of an empty default-avatar circle,
+    // which otherwise leaves a dead ~20px slot to the right of the emoji
+    // (chattr fork).
     if (user == null) return const SizedBox.shrink();
     return Padding(
       padding: profileCirclePadding ?? const EdgeInsets.only(left: 4),
       child: ProfileImageWidget(
         imageUrl: user?.profilePhoto,
+        // A picture-less reactor (incl. your OWN reaction) renders a filled
+        // initials circle (p12) instead of the empty default-avatar that left a
+        // dead slot — so the reactor is still shown and there's no gap.
+        userName: user?.name,
         imageType: user?.imageType,
         defaultAvatarImage: user?.defaultAvatarImage ?? Constants.profileImage,
         circleRadius: profileCircleRadius ?? 8,
