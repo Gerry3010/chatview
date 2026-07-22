@@ -243,12 +243,16 @@ class TextMessageView extends StatelessWidget {
       String message, bool showTimeInChatBubble) {
     final config =
         isMessageBySender ? outgoingChatBubbleConfig : inComingChatBubbleConfig;
+    // A flat borderRadius is a deliberate shape → honored verbatim (no grouping).
     if (config?.borderRadius != null) return config!.borderRadius!;
 
+    // chattr fork p15: base radius is configurable per short/long bubble while
+    // the message-grouping corner chaining below is preserved. Null → package
+    // defaults (30 short / 18 long).
     final r =
         (showTimeInChatBubble && message.length < (isMessageBySender ? 37 : 29))
-            ? replyBorderRadius1
-            : replyBorderRadius2;
+            ? (config?.shortMessageBorderRadius ?? replyBorderRadius1)
+            : (config?.longMessageBorderRadius ?? replyBorderRadius2);
 
     final groupingEnabled = featureActiveConfig?.enableMessageGrouping ?? true;
     final standalone = isFirstInGroup && isLastInGroup;

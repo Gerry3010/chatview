@@ -30,6 +30,8 @@ class ChatBubble {
   const ChatBubble({
     this.color,
     this.borderRadius,
+    this.shortMessageBorderRadius,
+    this.longMessageBorderRadius,
     this.textStyle,
     this.emojiSize,
     this.messageTimeTextStyle,
@@ -47,8 +49,22 @@ class ChatBubble {
   /// Used for giving color of chat bubble.
   final Color? color;
 
-  /// Used for giving border radius of chat bubble.
+  /// Used for giving border radius of chat bubble. A non-null value is a FLAT
+  /// override — it is applied verbatim and disables message-grouping corner
+  /// chaining. To reduce roundness while KEEPING the grouped-conversation look,
+  /// use [shortMessageBorderRadius]/[longMessageBorderRadius] instead.
   final BorderRadiusGeometry? borderRadius;
+
+  /// chattr fork p15: base corner radius for a SHORT single-line bubble. The
+  /// package hardcodes this to `replyBorderRadius1` (30), which reads as a
+  /// near-circular pill on one-word messages. When set, this overrides that base
+  /// while message-grouping corner chaining is STILL applied. Null → default 30.
+  final double? shortMessageBorderRadius;
+
+  /// chattr fork p15: base corner radius for a LONGER / multi-line bubble
+  /// (package default `replyBorderRadius2` = 18). Grouping chaining still
+  /// applies. Null → default 18.
+  final double? longMessageBorderRadius;
 
   /// Used for giving text style of chat bubble.
   final TextStyle? textStyle;

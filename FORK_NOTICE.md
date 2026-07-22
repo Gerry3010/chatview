@@ -118,6 +118,23 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   (`HitTestBehavior.deferToChild`), so default behaviour is unchanged.
   `src/widgets/chat_view_appbar.dart`.
 
+- **Configurable bubble radius (grouping preserved) + reaction self-slot** —
+  tag `chattr-3.1.0-p15`. Two independent fixes:
+  1. `ChatBubble.shortMessageBorderRadius` / `longMessageBorderRadius`
+     (`double?`): override the package's hardcoded base corner radii
+     (`replyBorderRadius1` = 30 for short, `replyBorderRadius2` = 18 for long,
+     the former reads as a near-circular pill on one-word messages) while
+     message-grouping corner chaining is STILL applied — so a host can dial
+     roundness down without losing the grouped-conversation look. Null → the
+     package defaults (unchanged). A flat `borderRadius` still wins verbatim
+     (no grouping). `src/models/chat_bubble.dart`,
+     `src/widgets/text_message_view.dart`.
+  2. Reaction pill: a reactor not in the chat's user list (`getUserFromId` →
+     null — e.g. your OWN reaction, since the current user isn't an "other
+     user") no longer renders an empty default-avatar circle, which left a dead
+     ~20px slot to the right of the emoji. Now renders nothing for a null user.
+     `src/extensions/extensions.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.
