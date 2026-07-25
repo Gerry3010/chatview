@@ -180,7 +180,36 @@ class _MessageViewState extends State<MessageView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          (() {
+          // p18: ONE uniform jump-to-message pulse for every message type — an
+          // animated glow around the bubble. A glow sits OUTSIDE the content, so
+          // it needs no per-type shape/corner knowledge (that mismatch caused a
+          // wrong border) and shows over opaque media too, unlike a background
+          // tint. The per-type highlights (text bg / image scale / custom) are
+          // disabled above in favour of this single effect.
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              // Stronger, clearly-visible bloom: a tight bright core + a wider
+              // soft halo. Two stacked shadows read as a proper glow rather than
+              // a faint shadow.
+              boxShadow: widget.shouldHighlight
+                  ? [
+                      BoxShadow(
+                        color: widget.highlightColor,
+                        blurRadius: 12,
+                        spreadRadius: 4,
+                      ),
+                      BoxShadow(
+                        color: widget.highlightColor,
+                        blurRadius: 28,
+                        spreadRadius: 8,
+                      ),
+                    ]
+                  : const <BoxShadow>[],
+            ),
+            child: (() {
                 if (message.isAllEmoji &&
                     (maxOutSideBubbleEmojis == null ||
                         message.characters.length <= maxOutSideBubbleEmojis)) {
@@ -200,15 +229,13 @@ class _MessageViewState extends State<MessageView>
                         constraints: BoxConstraints(
                             maxWidth: widget.chatBubbleMaxWidth ??
                                 MediaQuery.sizeOf(context).width * 0.75),
-                        child: Transform.scale(
-                          scale: widget.shouldHighlight
-                              ? widget.highlightScale
-                              : 1.0,
-                          child: Text(
-                            message,
-                            style: emojiMessageConfiguration?.textStyle ??
-                                const TextStyle(fontSize: 30),
-                          ),
+                        // Highlight is now a single uniform glow applied around
+                        // the whole bubble in _messageView (p18) — no per-type
+                        // scale/tint here.
+                        child: Text(
+                          message,
+                          style: emojiMessageConfiguration?.textStyle ??
+                              const TextStyle(fontSize: 30),
                         ),
                       ),
                       if (widget.message.reaction.reactions.isNotEmpty)
@@ -228,8 +255,9 @@ class _MessageViewState extends State<MessageView>
                     messageReactionConfig: messageConfig?.messageReactionConfig,
                     inComingChatBubbleConfig: widget.inComingChatBubbleConfig,
                     outgoingChatBubbleConfig: widget.outgoingChatBubbleConfig,
-                    highlightImage: widget.shouldHighlight,
-                    highlightScale: widget.highlightScale,
+                    // Highlight handled uniformly by the glow in _messageView.
+                    highlightImage: false,
+                    highlightScale: 1.0,
                     featureActiveConfig: chatViewIW?.featureActiveConfig,
                     isFirstInGroup: widget.isFirstInGroup,
                     isLastInGroup: widget.isLastInGroup,
@@ -242,8 +270,9 @@ class _MessageViewState extends State<MessageView>
                     message: widget.message,
                     chatBubbleMaxWidth: widget.chatBubbleMaxWidth,
                     messageReactionConfig: messageConfig?.messageReactionConfig,
+                    // Highlight handled uniformly by the glow in _messageView.
                     highlightColor: widget.highlightColor,
-                    highlightMessage: widget.shouldHighlight,
+                    highlightMessage: false,
                     featureActiveConfig: chatViewIW?.featureActiveConfig,
                     isFirstInGroup: widget.isFirstInGroup,
                     isLastInGroup: widget.isLastInGroup,
@@ -282,7 +311,7 @@ class _MessageViewState extends State<MessageView>
                       : customWidget;
                 }
               }()) ??
-              const SizedBox(),
+                  const SizedBox()),
           ValueListenableBuilder(
             valueListenable: widget.message.statusNotifier,
             builder: (context, value, child) {

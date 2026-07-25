@@ -111,6 +111,13 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
 
   final Map<String, GlobalKey> _messageKeys = {};
 
+  /// Monotonic token identifying the currently-active jump/scroll-to-message
+  /// scan. Each new request bumps it; an in-flight scan loop bails the moment a
+  /// newer one starts, so only ONE scan can ever run (concurrent scans fought
+  /// over the scroll controller and oscillated "back and forth" without ever
+  /// reaching the target).
+  int _scanGeneration = 0;
+
   bool get isPaginationEnabled =>
       featureActiveConfig?.enablePagination ?? false;
 
@@ -166,12 +173,13 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final messages = chatController?.initialMessageList ?? const <Message>[];
-      // Scroll to the target. If it's outside the loaded window, _onReplyTap
-      // pages it in via loadOldReplyMessage — so only skip when the host didn't
-      // provide that callback (avoids the "message not found" throw).
-      final canPageIn =
-          chatListConfig.repliedMessageConfig?.loadOldReplyMessage != null;
-      if (messages.any((m) => m.id == id) || canPageIn) {
+      final inList = messages.any((m) => m.id == id);
+      // Only scan when the target is actually in the loaded list. Paging older
+      // history in is the HOST's job (it re-requests the highlight once the
+      // message is loaded) — doing it here too spawned a second, competing scan
+      // loop that fought the first over the scroll controller (neither made
+      // progress → both gave up).
+      if (inList) {
         _onReplyTap(id, messages);
       }
       _highlightNotifier?.value = null;
@@ -200,7 +208,17 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
     String id,
     List<Message> messages, {
     int? messageIndex,
+    int scrollAttempts = 0,
+    double scanDir = 0,
+    bool flipped = false,
+    int? generation,
   }) async {
+    // First entry (generation == null) starts a new scan and supersedes any
+    // in-flight one; recursive steps carry their scan's token and bail if a
+    // newer scan has since started.
+    final gen = generation ?? ++_scanGeneration;
+    if (gen != _scanGeneration) return;
+
     final index = messageIndex == null || messageIndex.isNegative
         ? messages.indexWhere((message) => id == message.id)
         : messageIndex;
@@ -234,6 +252,7 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
         chatViewIW!.chatController.initialMessageList,
         // Helps stopping recursion.
         messageIndex: index,
+        generation: gen,
       );
       return;
     }
@@ -241,28 +260,84 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
     final repliedMessage = messages[index];
     final repliedMsgState = _messageKeys[repliedMessage.id]?.currentState;
 
-    // The message is in the list but not rendered yet.
-    // Scroll slightly repeatedly to ensure it is rendered.
+    // The message is in the data list but its widget isn't built/rendered yet
+    // (it's outside the ListView's cache extent). Scroll toward it a viewport at
+    // a time until it renders, then fall through to ensureVisible below.
     if (repliedMsgState == null) {
-      // Calculate total scroll extent and visible portion
-      final controllerPosition = widget.scrollController.position;
+      // p18: the scroll position may not be attached yet on the first frames
+      // after open — a programmatic jump (favorites / global search) can fire
+      // while the message stream hasn't emitted the list, so the ListView (and
+      // its ScrollController position) isn't built. Reading
+      // `scrollController.position` then throws "Bad state: No element" and
+      // crashes the app. Wait for it to attach, bounded so it can't spin forever.
+      if (!widget.scrollController.hasClients) {
+        if (scrollAttempts >= 40) return; // give up quietly, no crash
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _onReplyTap(id, messages,
+                messageIndex: index,
+                scrollAttempts: scrollAttempts + 1,
+                generation: gen);
+          }
+        });
+        return;
+      }
 
-      // Calculate a target position based on relative index position
-      // This estimates where the message might be in the list
-      final scrollExtent = controllerPosition.maxScrollExtent;
-      final targetPosition = scrollExtent * ((index + 1) / messages.length);
+      // Bound the scan so a target we can never render (variable-height media
+      // makes a fixed linear estimate never line up) can't loop forever and
+      // FREEZE the UI. 80 viewport-steps is far more than any real chat.
+      if (scrollAttempts >= 80) return;
 
-      // Start a bit before the estimated position to avoid overshooting
-      final visibleHeight = controllerPosition.viewportDimension;
-      final scrollPosition = targetPosition - (visibleHeight * 0.85);
+      final position = widget.scrollController.position;
+      final step = position.viewportDimension * 0.8;
 
+      // Direction: don't assume the list's index→offset orientation (it bit us —
+      // the guess was inverted and we hit the wrong edge instantly). Keep the
+      // direction we're already scanning in; only on the FIRST step make a guess,
+      // and if a step hits an edge without rendering the target, FLIP once and
+      // scan the whole other way. The target is known to be in `messages`, so a
+      // full sweep in the correct direction is guaranteed to bring it into the
+      // cache extent and render it.
+      double direction = scanDir;
+      if (direction == 0) {
+        // Initial guess from a rendered neighbour (index delta), else midpoint.
+        for (final entry in _messageKeys.entries) {
+          if (entry.value.currentState == null) continue;
+          final renderedIndex = messages.indexWhere((m) => m.id == entry.key);
+          if (renderedIndex == -1 || renderedIndex == index) continue;
+          direction = index > renderedIndex ? 1.0 : -1.0;
+          break;
+        }
+        if (direction == 0) direction = 1.0;
+      }
+
+      final next = (position.pixels + step * direction)
+          .clamp(position.minScrollExtent, position.maxScrollExtent);
+      if ((next - position.pixels).abs() < 1.0) {
+        // Can't move further this way. Flip once and sweep the other direction;
+        // if we've already flipped, the target genuinely isn't reachable — stop.
+        if (!flipped) {
+          _onReplyTap(id, messages,
+              messageIndex: index,
+              scrollAttempts: scrollAttempts + 1,
+              scanDir: -direction,
+              flipped: true,
+              generation: gen);
+        }
+        return;
+      }
       widget.scrollController
           .animateTo(
-            scrollPosition,
+            next,
             curve: Curves.ease,
             duration: const Duration(milliseconds: 50),
           )
-          .then((_) => _onReplyTap(id, messages, messageIndex: index));
+          .then((_) => _onReplyTap(id, messages,
+              messageIndex: index,
+              scrollAttempts: scrollAttempts + 1,
+              scanDir: direction,
+              flipped: flipped,
+              generation: gen));
       return;
     }
 

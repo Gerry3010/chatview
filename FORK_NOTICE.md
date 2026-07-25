@@ -165,6 +165,24 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   `src/widgets/chat_view.dart`, `src/widgets/chat_view_inherited_widget.dart`,
   `src/widgets/chat_groupedlist_widget.dart`, `src/widgets/text_message_view.dart`.
 
+- **Robust jump-to-message + uniform highlight glow** — tag `chattr-3.1.0-p19`.
+  Hardens p18 after device testing:
+  1. **No crash**: guard `scrollController.position` behind `hasClients` — a jump
+     firing before the list attaches threw "Bad state: No element".
+  2. **No freeze**: the old fixed linear-position estimate never lined up with
+     variable-height content (media albums) and looped forever. Replaced with a
+     bounded, direction-flipping viewport scan that sweeps toward the target and
+     gives up gracefully at the edges.
+  3. **Single scan**: a `_scanGeneration` token ensures only the latest jump
+     scans — concurrent scans (host + subscribe-time trigger) fought over the
+     scroll controller and oscillated without progress.
+  4. **Uniform glow**: the per-type highlight (text bg tint / image scale /
+     custom) is replaced by ONE animated bloom (`boxShadow`) around the bubble in
+     `MessageView`, so every message type — including opaque media — pulses
+     identically with no shape/border mismatch.
+  `src/widgets/chat_groupedlist_widget.dart`, `src/widgets/chat_list_widget.dart`,
+  `src/widgets/message_view.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.

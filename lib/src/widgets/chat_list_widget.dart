@@ -152,7 +152,16 @@ class _ChatListWidgetState extends State<ChatListWidget> {
       if (!chatController.messageStreamController.isClosed) {
         chatController.messageStreamController.add(messageList);
       }
-      if (messageList.isNotEmpty) chatController.scrollToLastMessage();
+      // p18: when the view is opened to jump to a specific message (favorites /
+      // global search), skip the initial scroll-to-bottom. Its delayed timer
+      // (scrollToLastMessage → Timer(~300ms)) would otherwise fire *after* the
+      // jump lands and snap the list back to the end. The host sets the
+      // highlight notifier synchronously before this frame, so a non-null value
+      // here means a jump is pending.
+      final pendingJump = chatViewIW?.highlightMessageNotifier?.value != null;
+      if (messageList.isNotEmpty && !pendingJump) {
+        chatController.scrollToLastMessage();
+      }
     });
   }
 
