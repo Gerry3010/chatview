@@ -166,10 +166,14 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final messages = chatController?.initialMessageList ?? const <Message>[];
-      // Only scroll when the target is in the loaded window — otherwise
-      // _onReplyTap falls through to loadOldReplyMessage (which the host may not
-      // provide). Far-back targets simply open the chat without a jump.
-      if (messages.any((m) => m.id == id)) _onReplyTap(id, messages);
+      // Scroll to the target. If it's outside the loaded window, _onReplyTap
+      // pages it in via loadOldReplyMessage — so only skip when the host didn't
+      // provide that callback (avoids the "message not found" throw).
+      final canPageIn =
+          chatListConfig.repliedMessageConfig?.loadOldReplyMessage != null;
+      if (messages.any((m) => m.id == id) || canPageIn) {
+        _onReplyTap(id, messages);
+      }
       _highlightNotifier?.value = null;
     });
   }
@@ -277,8 +281,22 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
     );
 
     if (repliedMsgAutoScrollConfig?.enableHighlightRepliedMsg ?? false) {
+      _pulseHighlight(id, highlightDuration);
+    }
+  }
+
+  /// Blink the highlight a few times (p18) instead of a single flash — the
+  /// single pulse read as "too subtle" for jump-to-message. Each on/off cycle
+  /// runs for [duration]; a short gap between makes the blink legible.
+  Future<void> _pulseHighlight(String id, Duration duration, {int times = 3}) async {
+    final gap = Duration(milliseconds: (duration.inMilliseconds * 0.4).round());
+    for (var i = 0; i < times; i++) {
+      if (!mounted) return;
       _replyId.value = id;
-      Future.delayed(highlightDuration, () => _replyId.value = null);
+      await Future.delayed(duration);
+      if (!mounted) return;
+      _replyId.value = null;
+      if (i < times - 1) await Future.delayed(gap);
     }
   }
 
