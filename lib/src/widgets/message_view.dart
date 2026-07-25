@@ -19,6 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+import 'dart:ui' show ImageFilter;
+
 import 'package:chatview_utils/chatview_utils.dart';
 import 'package:flutter/material.dart';
 
@@ -171,7 +173,7 @@ class _MessageViewState extends State<MessageView>
     final emojiMessageConfiguration = messageConfig?.emojiMessageConfig;
     final maxOutSideBubbleEmojis =
         emojiMessageConfiguration?.maxOutSideBubbleEmojis;
-    return Padding(
+    final content = Padding(
       padding: EdgeInsets.only(
         bottom: widget.message.reaction.reactions.isNotEmpty ? 6 : 0,
       ),
@@ -307,6 +309,49 @@ class _MessageViewState extends State<MessageView>
             },
           )
         ],
+      ),
+    );
+
+    // p17: overlay a small star badge on any starred/favorited message bubble
+    // (works for every message type since it wraps the whole content). The app
+    // supplies the predicate via MessageConfiguration.isMessageStarred.
+    final starred =
+        messageConfig?.isMessageStarred?.call(widget.message) ?? false;
+    if (!starred) return content;
+    final badge = messageConfig?.starredIndicator ?? _defaultStarredBadge();
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        content,
+        PositionedDirectional(
+          // Just barely outside the bubble's inner-top corner: a touch up, and
+          // a hair out on the inner side (left for outgoing, right for incoming).
+          top: -5,
+          start: widget.isMessageBySender ? -3 : null,
+          end: widget.isMessageBySender ? null : -3,
+          child: badge,
+        ),
+      ],
+    );
+  }
+
+  Widget _defaultStarredBadge() {
+    // Frosted-glass chip: a blurred backdrop (samples the bubble behind it),
+    // a theme-primary border and a theme-primary star (Material vector icon,
+    // not an emoji) — all theme-aware for light/dark.
+    final scheme = Theme.of(context).colorScheme;
+    return ClipOval(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        child: Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: scheme.surface.withValues(alpha: 0.35),
+            border: Border.all(color: scheme.primary, width: 1),
+          ),
+          child: Icon(Icons.star, size: 11, color: scheme.primary),
+        ),
       ),
     );
   }

@@ -20,6 +20,9 @@
  * SOFTWARE.
  */
 
+import 'package:chatview_utils/chatview_utils.dart';
+import 'package:flutter/material.dart';
+
 import '../../values/typedefs.dart';
 import '../models.dart';
 
@@ -32,6 +35,8 @@ class MessageConfiguration {
     this.customMessageBuilder,
     this.voiceMessageConfig,
     this.customMessageReplyViewBuilder,
+    this.isMessageStarred,
+    this.starredIndicator,
   });
 
   /// Provides configuration of image message appearance.
@@ -56,4 +61,14 @@ class MessageConfiguration {
   ///
   /// Default is `true`.
   final bool showReactionsOnCustomMessages;
+
+  /// Predicate deciding whether a given message is "starred"/favorited. When it
+  /// returns true, a small star badge is overlaid on the message bubble's top
+  /// outer corner (works across ALL message types — text/image/voice/custom).
+  /// The app owns the meaning of "starred"; the package only renders the badge.
+  final bool Function(Message message)? isMessageStarred;
+
+  /// Optional custom widget for the starred badge. Defaults to a small amber
+  /// star with a subtle contrasting background.
+  final Widget? starredIndicator;
 }

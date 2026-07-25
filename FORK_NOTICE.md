@@ -142,6 +142,17 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   to the right of the emoji. Truly-unknown reactors (null user) still render
   nothing. `src/extensions/extensions.dart`.
 
+- **Starred/favorited message badge** — tag `chattr-3.1.0-p17`.
+  `MessageConfiguration.isMessageStarred` (a `bool Function(Message)?` predicate)
+  plus an optional `starredIndicator` widget. When the predicate returns true,
+  `MessageView` overlays a small star badge on the bubble's inner-top corner —
+  wrapping the whole content so it works for EVERY message type (text/image/
+  voice/custom). The default badge is a frosted-glass chip (backdrop blur +
+  theme-primary border + theme-primary star), fully theme-aware. The app owns
+  the meaning of "starred"; the package only renders the badge.
+  `src/models/config_models/message_configuration.dart`,
+  `src/widgets/message_view.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.
