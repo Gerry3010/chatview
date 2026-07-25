@@ -132,7 +132,12 @@ class TextMessageView extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Container(
+        // AnimatedContainer so the highlight colour fades in/out smoothly
+        // (jump-to-message pulse) instead of a hard flash. Only the decoration
+        // colour actually changes, so nothing else animates.
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
           constraints: BoxConstraints(
               maxWidth: chatBubbleMaxWidth ??
                   MediaQuery.of(context).size.width * 0.75),

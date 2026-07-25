@@ -289,14 +289,16 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
   /// single pulse read as "too subtle" for jump-to-message. Each on/off cycle
   /// runs for [duration]; a short gap between makes the blink legible.
   Future<void> _pulseHighlight(String id, Duration duration, {int times = 3}) async {
-    final gap = Duration(milliseconds: (duration.inMilliseconds * 0.4).round());
+    // Hold each on/off phase for the full [duration] so the bubble's
+    // AnimatedContainer colour fade completes each way — a clean pulse rather
+    // than a clipped shimmer.
     for (var i = 0; i < times; i++) {
       if (!mounted) return;
       _replyId.value = id;
       await Future.delayed(duration);
       if (!mounted) return;
       _replyId.value = null;
-      if (i < times - 1) await Future.delayed(gap);
+      if (i < times - 1) await Future.delayed(duration);
     }
   }
 
