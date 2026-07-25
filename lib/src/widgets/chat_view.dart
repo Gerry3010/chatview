@@ -66,10 +66,15 @@ class ChatView extends StatefulWidget {
     this.replyMessageBuilder,
     this.replySuggestionsConfig,
     this.scrollToBottomButtonConfig,
+    this.highlightMessageNotifier,
   })  : chatBackgroundConfig =
             chatBackgroundConfig ?? const ChatBackgroundConfiguration(),
         chatViewStateConfig =
             chatViewStateConfig ?? const ChatViewStateConfiguration();
+
+  /// p18: app-owned notifier — set its value to a message id to scroll that
+  /// message into view and pulse it (jump-to-message from favorites / search).
+  final ValueNotifier<String?>? highlightMessageNotifier;
 
   /// Provides configuration related to user profile circle avatar.
   final ProfileCircleConfiguration? profileCircleConfig;
@@ -220,6 +225,7 @@ class _ChatViewState extends State<ChatView>
       featureActiveConfig: featureActiveConfig,
       profileCircleConfiguration: widget.profileCircleConfig,
       chatTextFieldViewKey: chatTextFieldViewKey,
+      highlightMessageNotifier: widget.highlightMessageNotifier,
       child: SuggestionsConfigIW(
         suggestionsConfig: widget.replySuggestionsConfig,
         child: ConfigurationsInheritedWidget(

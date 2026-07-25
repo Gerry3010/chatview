@@ -144,8 +144,34 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
       featureActiveConfig = chatViewIW!.featureActiveConfig;
       chatController = chatViewIW!.chatController
         ..registerListViewReset(() => _listKey.value = UniqueKey());
+      // p18: react to app-driven jump-to-message (favorites / global search).
+      final notifier = chatViewIW!.highlightMessageNotifier;
+      if (notifier != null && !identical(notifier, _highlightNotifier)) {
+        _highlightNotifier?.removeListener(_onHighlightRequested);
+        _highlightNotifier = notifier..addListener(_onHighlightRequested);
+        // Handle a value set before this widget subscribed.
+        if (notifier.value != null) _onHighlightRequested();
+      }
     }
     _initializeAnimation();
+  }
+
+  /// p18: scroll the requested message into view + pulse it, reusing the
+  /// replied-message auto-scroll/highlight path. Deferred a frame so the list
+  /// is laid out (message GlobalKeys populated) before we scroll.
+  ValueNotifier<String?>? _highlightNotifier;
+  void _onHighlightRequested() {
+    final id = _highlightNotifier?.value;
+    if (id == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final messages = chatController?.initialMessageList ?? const <Message>[];
+      // Only scroll when the target is in the loaded window — otherwise
+      // _onReplyTap falls through to loadOldReplyMessage (which the host may not
+      // provide). Far-back targets simply open the chat without a jump.
+      if (messages.any((m) => m.id == id)) _onReplyTap(id, messages);
+      _highlightNotifier?.value = null;
+    });
   }
 
   @override
@@ -275,6 +301,7 @@ class _ChatGroupedListWidgetState extends State<ChatGroupedListWidget>
 
   @override
   void dispose() {
+    _highlightNotifier?.removeListener(_onHighlightRequested);
     _animationController?.dispose();
     _replyId.dispose();
     _isNextPageLoading.dispose();

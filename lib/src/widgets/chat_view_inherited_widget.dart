@@ -37,11 +37,17 @@ class ChatViewInheritedWidget extends InheritedWidget {
     required this.chatController,
     required this.chatTextFieldViewKey,
     this.profileCircleConfiguration,
+    this.highlightMessageNotifier,
   });
   final FeatureActiveConfig featureActiveConfig;
   final ProfileCircleConfiguration? profileCircleConfiguration;
   final ChatController chatController;
   final GlobalKey chatTextFieldViewKey;
+
+  /// p18: set this to a message id to scroll that message into view and pulse
+  /// it (reuses the replied-message auto-scroll + highlight). The app drives it
+  /// when opening a chat from a favorite / global-search hit.
+  final ValueNotifier<String?>? highlightMessageNotifier;
   final ValueNotifier<bool> showPopUp = ValueNotifier(false);
   final ValueNotifier<double> chatTextFieldHeight = ValueNotifier(0.0);
   final GlobalKey<ReactionPopupState> reactionPopupKey = GlobalKey();
