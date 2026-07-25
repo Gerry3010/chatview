@@ -153,6 +153,18 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   `src/models/config_models/message_configuration.dart`,
   `src/widgets/message_view.dart`.
 
+- **Jump-to-message + animated pulse highlight** — tag `chattr-3.1.0-p18`.
+  A new `ChatView.highlightMessageNotifier` (a `ValueNotifier<String?>`) lets the
+  host request a programmatic jump to any message by id (from a favorites list,
+  global search, etc.), reusing the existing reply-scroll + highlight machinery.
+  `ChatGroupedListWidget` listens and calls the reply-tap scroll path; the guard
+  is relaxed so far-away/older messages page in via `loadOldReplyMessage` instead
+  of being skipped. The highlight itself now pulses (3× blink) and fades smoothly
+  via `AnimatedContainer` (300ms) instead of a hard on/off, with `highlightScale`
+  left at 1.0 so it reads as a colour pulse, not a stretch.
+  `src/widgets/chat_view.dart`, `src/widgets/chat_view_inherited_widget.dart`,
+  `src/widgets/chat_groupedlist_widget.dart`, `src/widgets/text_message_view.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.
