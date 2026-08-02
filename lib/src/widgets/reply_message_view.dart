@@ -76,24 +76,22 @@ class ReplyMessageViewState extends State<ReplyMessageView> {
 
         return widget.builder?.call(context, state) ??
             Container(
+              // chattr p20: the banner is laid out in flow ABOVE the text
+              // field (Column in SendMessageWidget) instead of stacked behind
+              // it, so a growing multi-line field can no longer paint over it.
+              // The old fixed bottom reservation (margin 17 + padding 30) is
+              // gone; the banner is a self-contained rounded card now.
               decoration: BoxDecoration(
                 color: widget.sendMessageConfig?.textFieldBackgroundColor ??
                     Colors.white,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(14),
-                ),
+                borderRadius: const BorderRadius.all(Radius.circular(14)),
               ),
               margin: const EdgeInsets.only(
-                bottom: 17,
+                bottom: 4,
                 right: 0.4,
                 left: 0.4,
               ),
-              padding: const EdgeInsets.fromLTRB(
-                leftPadding,
-                leftPadding,
-                leftPadding,
-                30,
-              ),
+              padding: const EdgeInsets.all(leftPadding),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 2),
                 padding: const EdgeInsets.symmetric(

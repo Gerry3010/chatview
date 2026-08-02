@@ -172,8 +172,11 @@ class SendMessageWidgetState extends State<SendMessageWidget> {
                             bottomPadding4,
                             _bottomPadding,
                           ),
-                          child: Stack(
-                            alignment: Alignment.bottomCenter,
+                          // chattr p20: Column instead of Stack — the reply/
+                          // edit/selected-image banners sit in flow ABOVE the
+                          // field, so a multi-line draft can't overlap them.
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               ReplyMessageView(
                                 key: _replyMessageTextFieldViewKey,

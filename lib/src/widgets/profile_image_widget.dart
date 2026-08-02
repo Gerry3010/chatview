@@ -31,6 +31,8 @@ class ProfileImageWidget extends StatelessWidget {
     super.key,
     this.imageUrl,
     this.userName,
+    this.userId,
+    this.fallbackBackgroundColor,
     this.defaultAvatarImage = Constants.profileImage,
     this.circleRadius,
     this.assetImageErrorBuilder,
@@ -38,6 +40,14 @@ class ProfileImageWidget extends StatelessWidget {
     this.imageType = ImageType.network,
     required this.networkImageProgressIndicatorBuilder,
   });
+
+  /// chattr p20: app-injectable resolver for the initials-circle background so
+  /// the host app can derive ONE stable identity colour per user across every
+  /// surface (message circles, reaction pills, app bar, reaction sheet).
+  /// Called with whatever the call site knows (id and/or name); return null to
+  /// keep the built-in name-hash colour. Set once at app startup.
+  static Color? Function(String? userId, String? userName)?
+      fallbackColorResolver;
 
   /// Allow user to set radius of circle avatar.
   final double? circleRadius;
@@ -50,6 +60,14 @@ class ProfileImageWidget extends StatelessWidget {
   /// original empty behaviour (a zero-size box), so callers that don't pass a
   /// name are unaffected.
   final String? userName;
+
+  /// chattr p20: the user's id, forwarded to [fallbackColorResolver] where the
+  /// call site knows it. Purely additive — no behaviour change when unset.
+  final String? userId;
+
+  /// chattr p20: explicit background for the initials fallback; wins over
+  /// [fallbackColorResolver] and the built-in name-hash colour.
+  final Color? fallbackBackgroundColor;
 
   /// Flag to check whether image is network or asset
   final ImageType? imageType;
@@ -121,7 +139,13 @@ class ProfileImageWidget extends StatelessWidget {
     final name = userName?.trim() ?? '';
     if (name.isEmpty) return const SizedBox.shrink();
     final initials = _initials(name);
-    final bg = _colorFor(name);
+    // chattr p20: explicit colour > app resolver > legacy name-hash. The text
+    // colour follows the background's luminance so injected light colours stay
+    // readable (the legacy path keeps its hardcoded white).
+    final bg = fallbackBackgroundColor ??
+        fallbackColorResolver?.call(userId, name) ??
+        _colorFor(name);
+    final fg = bg.computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
     return Container(
       height: radius,
       width: radius,
@@ -130,7 +154,7 @@ class ProfileImageWidget extends StatelessWidget {
       child: Text(
         initials,
         style: TextStyle(
-          color: Colors.white,
+          color: fg,
           fontWeight: FontWeight.w600,
           fontSize: radius * 0.4,
         ),

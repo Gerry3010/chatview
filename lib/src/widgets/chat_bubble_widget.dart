@@ -203,6 +203,7 @@ class _ChatBubbleWidgetState extends State<ChatBubbleWidget> {
       profileCirclePadding: profileCircleConfig?.padding,
       imageUrl: messagedUser?.profilePhoto,
       userName: messagedUser?.name,
+      userId: messagedUser?.id, // chattr p20: for the fallback colour resolver
       imageType: messagedUser?.imageType,
       defaultAvatarImage:
           messagedUser?.defaultAvatarImage ?? Constants.profileImage,

@@ -183,6 +183,30 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   `src/widgets/chat_groupedlist_widget.dart`, `src/widgets/chat_list_widget.dart`,
   `src/widgets/message_view.dart`.
 
+- **In-flow composer banners + injectable avatar colour** — tag `chattr-3.1.0-p20`.
+  1. **Composer overflow fix**: `SendMessageWidget`'s inner `Stack(bottomCenter)`
+     becomes a `Column(mainAxisSize: min)` — `ReplyMessageView`, `EditMessageView`
+     and `SelectedImageViewWidget` sit in flow ABOVE `ChatUITextField`. Previously
+     the text field painted last over a fixed reserved strip (reply: margin 17 +
+     padding 30; edit: padding 48), so a multi-line draft covered the banner.
+     The banners drop those reservations and render as self-contained rounded
+     cards (radius 14, bottom margin 4).
+     `src/widgets/send_message_widget.dart`, `src/widgets/reply_message_view.dart`,
+     `src/widgets/edit_message_view.dart`.
+  2. **Injectable avatar colour**: static
+     `ProfileImageWidget.fallbackColorResolver` (`Color? Function(String? userId,
+     String? userName)?`) plus per-instance `fallbackBackgroundColor` and `userId`
+     params. Priority: explicit colour > resolver > legacy name-hash. The initials
+     text auto-contrasts via `computeLuminance()`. `userId` is threaded from every
+     site that knows it (`ProfileCircle` → message circles, reaction-pill
+     `getUserProfilePicture`, reactions bottom sheet); the bottom sheet also gains
+     `userName`, so a picture-less reactor now renders the p12 initials circle
+     instead of a blank slot. `ProfileImageWidget` is exported from
+     `package:chatview/chatview.dart` so the host can set the resolver.
+     `src/widgets/profile_image_widget.dart`, `src/widgets/profile_circle.dart`,
+     `src/widgets/chat_bubble_widget.dart`, `src/widgets/reactions_bottomsheet.dart`,
+     `src/extensions/extensions.dart`, `lib/chatview.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.

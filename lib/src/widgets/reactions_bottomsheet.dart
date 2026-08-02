@@ -92,6 +92,11 @@ class ReactionsBottomSheet {
                             reactionsBottomSheetConfig?.profileCircleRadius ??
                                 16,
                         imageUrl: reactedUser.profilePhoto,
+                        // chattr p20: name + id so a picture-less reactor gets
+                        // the p12 initials circle here too (was a blank slot),
+                        // in the app-resolved identity colour.
+                        userName: reactedUser.name,
+                        userId: reactedUser.id,
                         imageType: reactedUser.imageType,
                         defaultAvatarImage: reactedUser.defaultAvatarImage,
                         assetImageErrorBuilder:

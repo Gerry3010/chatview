@@ -188,18 +188,19 @@ extension ValidateString on String {
     return Padding(
       padding: profileCirclePadding ?? const EdgeInsets.only(left: 4),
       child: ProfileImageWidget(
-        imageUrl: user?.profilePhoto,
+        imageUrl: user.profilePhoto,
         // A picture-less reactor (incl. your OWN reaction) renders a filled
         // initials circle (p12) instead of the empty default-avatar that left a
         // dead slot — so the reactor is still shown and there's no gap.
-        userName: user?.name,
-        imageType: user?.imageType,
-        defaultAvatarImage: user?.defaultAvatarImage ?? Constants.profileImage,
+        userName: user.name,
+        userId: user.id, // chattr p20: for the fallback colour resolver
+        imageType: user.imageType,
+        defaultAvatarImage: user.defaultAvatarImage,
         circleRadius: profileCircleRadius ?? 8,
-        assetImageErrorBuilder: user?.assetImageErrorBuilder,
-        networkImageErrorBuilder: user?.networkImageErrorBuilder,
+        assetImageErrorBuilder: user.assetImageErrorBuilder,
+        networkImageErrorBuilder: user.networkImageErrorBuilder,
         networkImageProgressIndicatorBuilder:
-            user?.networkImageProgressIndicatorBuilder,
+            user.networkImageProgressIndicatorBuilder,
       ),
     );
   }

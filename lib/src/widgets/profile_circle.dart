@@ -31,6 +31,7 @@ class ProfileCircle extends StatelessWidget {
     required this.bottomPadding,
     this.imageUrl,
     this.userName,
+    this.userId,
     this.profileCirclePadding,
     this.circleRadius,
     this.onTap,
@@ -53,6 +54,9 @@ class ProfileCircle extends StatelessWidget {
   /// Optional display name for the initials-circle fallback when [imageUrl]
   /// is empty (chattr fork p12).
   final String? userName;
+
+  /// chattr p20: user id forwarded to the fallback colour resolver.
+  final String? userId;
 
   /// Field to define image type [network, asset or base64]
   final ImageType? imageType;
@@ -94,6 +98,7 @@ class ProfileCircle extends StatelessWidget {
           circleRadius: circleRadius ?? 16,
           imageUrl: imageUrl,
           userName: userName,
+          userId: userId,
           defaultAvatarImage: defaultAvatarImage,
           assetImageErrorBuilder: assetImageErrorBuilder,
           networkImageErrorBuilder: networkImageErrorBuilder,

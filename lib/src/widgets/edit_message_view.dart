@@ -73,15 +73,16 @@ class EditMessageViewState extends State<EditMessageView> {
             Theme.of(context).colorScheme.primary;
 
         return Container(
+          // chattr p20: in-flow banner above the field (see ReplyMessageView) —
+          // the bottom-48 reservation for the overlapping field is gone.
           decoration: BoxDecoration(
             color: widget.sendMessageConfig?.textFieldBackgroundColor ??
                 Colors.white,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(14),
-            ),
+            borderRadius: const BorderRadius.all(Radius.circular(14)),
           ),
-          padding: const EdgeInsets.only(
-              left: leftPadding, right: leftPadding, bottom: 48),
+          margin: const EdgeInsets.only(bottom: 4),
+          padding: const EdgeInsets.symmetric(
+              horizontal: leftPadding, vertical: 6),
           child: Row(
             children: [
               Expanded(

@@ -58,3 +58,6 @@ export 'src/widgets/chat_list/chatlist.dart';
 export 'src/widgets/chat_view.dart';
 export 'src/widgets/chat_view_appbar.dart';
 export 'src/widgets/edit_message_view.dart';
+// chattr p20: exported so the host app can set
+// ProfileImageWidget.fallbackColorResolver (one identity colour everywhere).
+export 'src/widgets/profile_image_widget.dart';
