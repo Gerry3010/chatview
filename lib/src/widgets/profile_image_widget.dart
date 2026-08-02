@@ -49,6 +49,12 @@ class ProfileImageWidget extends StatelessWidget {
   static Color? Function(String? userId, String? userName)?
       fallbackColorResolver;
 
+  /// chattr p21: app-injectable resolver for the initials *foreground*. Set it
+  /// alongside [fallbackColorResolver] so the host app owns ONE contrast rule
+  /// for every avatar — in-package circles and app-side ones alike. Return null
+  /// to keep the built-in rule below.
+  static Color? Function(Color background)? fallbackForegroundResolver;
+
   /// Allow user to set radius of circle avatar.
   final double? circleRadius;
 
@@ -145,7 +151,7 @@ class ProfileImageWidget extends StatelessWidget {
     final bg = fallbackBackgroundColor ??
         fallbackColorResolver?.call(userId, name) ??
         _colorFor(name);
-    final fg = bg.computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
+    final fg = fallbackForegroundResolver?.call(bg) ?? _foregroundOn(bg);
     return Container(
       height: radius,
       width: radius,
@@ -160,6 +166,18 @@ class ProfileImageWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// chattr p21: the maximally-contrasting foreground for [background]. Picks
+  /// whichever of black/white yields the higher WCAG contrast ratio — the
+  /// crossover sits at relative luminance ≈0.179, NOT 0.5. The previous `>0.5`
+  /// rule put white on mid-luminance hues (yellow/green), where it drops to
+  /// ~1.9:1 and the initial becomes unreadable.
+  static Color _foregroundOn(Color background) {
+    final lum = background.computeLuminance();
+    final contrastWithWhite = 1.05 / (lum + 0.05);
+    final contrastWithBlack = (lum + 0.05) / 0.05;
+    return contrastWithWhite >= contrastWithBlack ? Colors.white : Colors.black;
   }
 
   static String _initials(String name) {

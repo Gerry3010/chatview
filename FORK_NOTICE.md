@@ -207,6 +207,18 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
      `src/widgets/chat_bubble_widget.dart`, `src/widgets/reactions_bottomsheet.dart`,
      `src/extensions/extensions.dart`, `lib/chatview.dart`.
 
+- **WCAG-correct initials contrast + injectable foreground** — tag
+  `chattr-3.1.0-p21`. `_fallbackAvatar` picked the letter colour with a plain
+  `computeLuminance() > 0.5`, but the black/white crossover sits at relative
+  luminance **≈0.179**: on mid-luminance hues (yellow/green/amber) that rule
+  chose white at as little as **1.9:1**, below even the 3:1 AA-large floor. The
+  new `_foregroundOn()` compares both contrast ratios and picks the winner.
+  Additionally a static `ProfileImageWidget.fallbackForegroundResolver`
+  (`Color? Function(Color background)?`) lets the host app supply its own rule,
+  so an app that already contrast-picks for its own avatars (chattr does) keeps
+  ONE implementation across in-package and app-side circles instead of two that
+  silently diverge. `src/widgets/profile_image_widget.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.
