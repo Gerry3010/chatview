@@ -109,7 +109,20 @@ class _ReactionWidgetState extends State<ReactionWidget> {
                     fontSize: messageReactionConfig?.reactionSize ?? 13,
                   ),
                 ),
-                if (chatController?.otherUsers.isNotEmpty ?? false) ...[
+                // Avatars suppressed (a 1:1 chat, where the circles say
+                // nothing the emoji doesn't): show a bare count, and only
+                // once more than one person has reacted.
+                if (!(messageReactionConfig?.showReactedUserAvatars ?? true)) ...[
+                  if (widget.reaction.reactedUserIds.length > 1)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(
+                        widget.reaction.reactedUserIds.length.toString(),
+                        style: messageReactionConfig?.reactionCountTextStyle ??
+                            _reactionTextStyle,
+                      ),
+                    ),
+                ] else if (chatController?.otherUsers.isNotEmpty ?? false) ...[
                   if (!(widget.reaction.reactedUserIds.length > 3) &&
                       !(reactionsSet.length > 1))
                     ...List.generate(

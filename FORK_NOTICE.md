@@ -219,6 +219,18 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   ONE implementation across in-package and app-side circles instead of two that
   silently diverge. `src/widgets/profile_image_widget.dart`.
 
+- **Optional reaction-pill avatars** — tag `chattr-3.1.0-p22`.
+  `MessageReactionConfiguration.showReactedUserAvatars` (default `true`, i.e.
+  upstream behaviour). The pill unconditionally listed a profile circle per
+  reacting user, which is informative in a group but pure noise in a 1:1
+  conversation: with exactly two possible reactors the pill's side already says
+  who reacted, yet every single 👍 grew a circle beside it. With the flag off
+  the pill renders a bare count instead, and only once more than one person has
+  reacted — a lone reaction stays just the emoji. The avatar branch is
+  otherwise untouched, so groups keep the p16 initials circles.
+  `src/models/config_models/message_reaction_configuration.dart`,
+  `src/widgets/reaction_widget.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.

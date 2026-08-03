@@ -37,6 +37,7 @@ class MessageReactionConfiguration {
     this.borderWidth,
     this.profileCircleRadius,
     this.profileCirclePadding,
+    this.showReactedUserAvatars = true,
   });
 
   /// Used for giving size of reaction on message.
@@ -75,6 +76,16 @@ class MessageReactionConfiguration {
 
   /// Used for padding to reacted user profile circle.
   final EdgeInsets? profileCirclePadding;
+
+  /// Whether the pill lists the reacting users' avatars.
+  ///
+  /// Defaults to `true` (upstream behaviour). Set it to `false` in a
+  /// one-to-one conversation: with only two possible reactors the avatars
+  /// carry no information — the emoji alone already says who reacted — and a
+  /// row of circles next to every single reaction is pure visual noise. With
+  /// avatars off the pill falls back to a plain count, and only when more than
+  /// one person reacted.
+  final bool showReactedUserAvatars;
 }
 
 class ReactionsBottomSheetConfiguration {
