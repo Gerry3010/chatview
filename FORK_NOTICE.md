@@ -231,6 +231,25 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   `src/models/config_models/message_reaction_configuration.dart`,
   `src/widgets/reaction_widget.dart`.
 
+- **Centred system-message notices** — tag `chattr-3.1.0-p23`.
+  `ChatBubbleConfiguration.isCenteredMessage` (`bool Function(Message)?`). Apps
+  model system messages ("X joined", a key-rotation warning) as a message from a
+  reserved sender id, and the package then lays that out like any other incoming
+  bubble. Three things go wrong. It is indented by the avatar slot, so a notice
+  meant to be centred sits off-centre — and by a *varying* amount, because the
+  slot is a full-width spacer mid-group but collapses to the avatar's own
+  padding on the last message of a group, so consecutive notices don't even line
+  up with each other. It is wrapped in `SwipeToReply`, so a notice can be swiped
+  into a reply quote; an app that (rightly) refuses to send a reply to a system
+  message then looks broken, because the send just does nothing. And it carries
+  a sender name, a reply quote and an edited marker that a notice never has.
+  Returning `true` lays the bubble out full-width and centred with none of that,
+  and without the receipt. Long-press, the p18 jump-to-message highlight and the
+  reaction overlay are deliberately untouched — the host app already gates those
+  per message. Default `null` = upstream behaviour.
+  `src/models/config_models/chat_bubble_configuration.dart`,
+  `src/widgets/chat_bubble_widget.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.

@@ -37,6 +37,7 @@ class ChatBubbleConfiguration {
     this.onLongPress,
     this.onSwipeToTimestamp,
     this.timestampRevealBuilder,
+    this.isCenteredMessage,
     this.disableLinkPreview = false,
   });
 
@@ -76,6 +77,24 @@ class ChatBubbleConfiguration {
   /// a bubble (WhatsApp-style "peek the delivered/read time"). Receives the
   /// [Message]; return `null`/omit to disable the peek for a bubble.
   final Widget? Function(Message message)? timestampRevealBuilder;
+
+  /// (chattr fork, p23) Marks a message as a **centred notice** rather than a
+  /// bubble sent by a participant — a system message such as "X joined" or a
+  /// key-rotation warning.
+  ///
+  /// Apps model these as a message from a reserved sender id, which the package
+  /// then lays out like any incoming bubble: indented by the avatar slot (so the
+  /// notice reads off-centre, and by a *varying* amount, because the slot
+  /// collapses on the last message of a group), wrapped in the swipe-to-reply
+  /// detector (so a notice can be swiped into a reply that no app can send) and
+  /// carrying a sender name, a reply quote and an edited marker that a notice
+  /// never has.
+  ///
+  /// Return `true` and the bubble is laid out full-width and centred, with no
+  /// avatar slot, no receipt, no swipe gestures and none of those affordances.
+  /// Long-press, the jump-to-message highlight and the reaction overlay are
+  /// untouched — the host app already gates those per message where it wants to.
+  final bool Function(Message message)? isCenteredMessage;
 
   /// A flag to disable link preview functionality.
   ///

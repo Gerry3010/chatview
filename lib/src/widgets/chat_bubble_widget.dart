@@ -159,6 +159,20 @@ class _ChatBubbleWidgetState extends State<ChatBubbleWidget> {
         resolvedAvatarPadding.left +
         resolvedAvatarPadding.right;
 
+    // chattr p23: a centred notice is not a bubble from a participant. It gets
+    // the full width (so it is centred on the CHAT, not on what is left beside
+    // the avatar slot) and skips the avatar, the receipt and the swipe wrapper.
+    // Note the padding default is dropped too — the package's asymmetric
+    // `left: 5` would knock a centred notice off-centre by exactly that much.
+    if (chatBubbleConfig?.isCenteredMessage?.call(widget.message) ?? false) {
+      return Container(
+        padding: chatBubbleConfig?.padding,
+        margin: chatBubbleConfig?.margin ?? const EdgeInsets.only(bottom: 10),
+        width: double.infinity,
+        child: _messageView,
+      );
+    }
+
     return Container(
       padding: chatBubbleConfig?.padding ?? const EdgeInsets.only(left: 5.0),
       margin: chatBubbleConfig?.margin ??
@@ -356,64 +370,66 @@ class _ChatBubbleWidgetState extends State<ChatBubbleWidget> {
           // past threshold, opens the per-recipient timestamp sheet. Passed as a
           // lazy builder so the per-bubble reveal chip is only built when a
           // reveal drag actually begins (not for every bubble on every frame).
-          timestampRevealBuilder: chatListConfig
-                      .chatBubbleConfig?.timestampRevealBuilder ==
-                  null
-              ? null
-              : () => chatListConfig.chatBubbleConfig!.timestampRevealBuilder!(
-                  widget.message),
+          timestampRevealBuilder:
+              chatListConfig.chatBubbleConfig?.timestampRevealBuilder == null
+                  ? null
+                  : () => chatListConfig.chatBubbleConfig!
+                      .timestampRevealBuilder!(widget.message),
           onSwipeToTimestamp:
               chatListConfig.chatBubbleConfig?.onSwipeToTimestamp != null
-                  ? () => chatListConfig.chatBubbleConfig!
-                      .onSwipeToTimestamp!(widget.message)
+                  ? () => chatListConfig
+                      .chatBubbleConfig!.onSwipeToTimestamp!(widget.message)
                   : null,
-          child: MessageView(
-            outgoingChatBubbleConfig:
-                chatListConfig.chatBubbleConfig?.outgoingChatBubbleConfig,
-            isLongPressEnable:
-                (featureActiveConfig?.enableReactionPopup ?? true) ||
-                    (featureActiveConfig?.enableReplySnackBar ?? true) ||
-                    chatListConfig.chatBubbleConfig?.onLongPress != null,
-            inComingChatBubbleConfig:
-                chatListConfig.chatBubbleConfig?.inComingChatBubbleConfig,
-            message: widget.message,
-            isMessageBySender: isMessageBySender,
-            messageConfig: chatListConfig.messageConfig,
-            // A configured onLongPress(Message) takes over: deliver the message
-            // directly instead of the position-based reaction-popup/snackbar path.
-            onLongPress: chatListConfig.chatBubbleConfig?.onLongPress != null
-                ? (_, __) => chatListConfig.chatBubbleConfig!
-                    .onLongPress!(widget.message)
-                : widget.onLongPress,
-            chatBubbleMaxWidth: chatListConfig.chatBubbleConfig?.maxWidth,
-            longPressAnimationDuration:
-                chatListConfig.chatBubbleConfig?.longPressAnimationDuration,
-            onDoubleTap: featureActiveConfig?.enableDoubleTapToLike ?? false
-                ? chatListConfig.chatBubbleConfig?.onDoubleTap ??
-                    (message) => currentUser != null
-                        ? chatController?.setReaction(
-                            emoji: heart,
-                            messageId: message.id,
-                            userId: currentUser!.id,
-                          )
-                        : null
-                : null,
-            shouldHighlight: widget.shouldHighlight,
-            controller: chatController,
-            highlightColor: chatListConfig.repliedMessageConfig
-                    ?.repliedMsgAutoScrollConfig.highlightColor ??
-                Colors.grey,
-            highlightScale: chatListConfig.repliedMessageConfig
-                    ?.repliedMsgAutoScrollConfig.highlightScale ??
-                1.1,
-            onMaxDuration: _onMaxDuration,
-            isFirstInGroup: widget.isFirstInGroup,
-            isLastInGroup: widget.isLastInGroup,
-          ),
+          child: _messageView,
         ),
       ],
     );
   }
+
+  /// The message itself, without the surrounding bubble chrome. Shared by the
+  /// normal (swipe-wrapped) path and the centred-notice path (chattr p23).
+  Widget get _messageView => MessageView(
+        outgoingChatBubbleConfig:
+            chatListConfig.chatBubbleConfig?.outgoingChatBubbleConfig,
+        isLongPressEnable: (featureActiveConfig?.enableReactionPopup ?? true) ||
+            (featureActiveConfig?.enableReplySnackBar ?? true) ||
+            chatListConfig.chatBubbleConfig?.onLongPress != null,
+        inComingChatBubbleConfig:
+            chatListConfig.chatBubbleConfig?.inComingChatBubbleConfig,
+        message: widget.message,
+        isMessageBySender: isMessageBySender,
+        messageConfig: chatListConfig.messageConfig,
+        // A configured onLongPress(Message) takes over: deliver the message
+        // directly instead of the position-based reaction-popup/snackbar path.
+        onLongPress: chatListConfig.chatBubbleConfig?.onLongPress != null
+            ? (_, __) =>
+                chatListConfig.chatBubbleConfig!.onLongPress!(widget.message)
+            : widget.onLongPress,
+        chatBubbleMaxWidth: chatListConfig.chatBubbleConfig?.maxWidth,
+        longPressAnimationDuration:
+            chatListConfig.chatBubbleConfig?.longPressAnimationDuration,
+        onDoubleTap: featureActiveConfig?.enableDoubleTapToLike ?? false
+            ? chatListConfig.chatBubbleConfig?.onDoubleTap ??
+                (message) => currentUser != null
+                    ? chatController?.setReaction(
+                        emoji: heart,
+                        messageId: message.id,
+                        userId: currentUser!.id,
+                      )
+                    : null
+            : null,
+        shouldHighlight: widget.shouldHighlight,
+        controller: chatController,
+        highlightColor: chatListConfig.repliedMessageConfig
+                ?.repliedMsgAutoScrollConfig.highlightColor ??
+            Colors.grey,
+        highlightScale: chatListConfig.repliedMessageConfig
+                ?.repliedMsgAutoScrollConfig.highlightScale ??
+            1.1,
+        onMaxDuration: _onMaxDuration,
+        isFirstInGroup: widget.isFirstInGroup,
+        isLastInGroup: widget.isLastInGroup,
+      );
 
   void _onMaxDuration(int duration) => maxDuration = duration;
 }
