@@ -208,6 +208,7 @@ class ImageMessageView extends StatelessWidget {
               ReactionWidget(
                 isMessageBySender: isMessageBySender,
                 reaction: message.reaction,
+                messageId: message.id,
                 messageReactionConfig: messageReactionConfig,
               ),
           ],

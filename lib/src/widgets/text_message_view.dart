@@ -218,6 +218,7 @@ class TextMessageView extends StatelessWidget {
             key: key,
             isMessageBySender: isMessageBySender,
             reaction: message.reaction,
+            messageId: message.id,
             messageReactionConfig: messageReactionConfig,
           ),
       ],

@@ -53,6 +53,16 @@ typedef ReactedUserCallback = void Function(
   String reaction,
 );
 
+/// chattr p24: a tap on the reaction pill, carrying the id of the message it
+/// belongs to.
+///
+/// [ReactedUserCallback] above cannot serve this purpose: it fires per ROW
+/// inside the package's own sheet and never sees a message id, so an app that
+/// wants to act on a reaction (remove its own, say) would have to guess which
+/// message the row came from — ambiguous as soon as someone used the same
+/// emoji twice.
+typedef ReactionPillTapCallback = void Function(String messageId);
+
 /// customMessageType view for a reply of custom message type
 typedef CustomMessageReplyViewBuilder = Widget Function(
   ReplyMessage state,

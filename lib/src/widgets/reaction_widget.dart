@@ -33,10 +33,16 @@ class ReactionWidget extends StatefulWidget {
     required this.reaction,
     this.messageReactionConfig,
     required this.isMessageBySender,
+    this.messageId,
   });
 
   /// Provides reaction instance of message.
   final Reaction reaction;
+
+  /// chattr p24: id of the message this pill belongs to, handed to
+  /// [MessageReactionConfiguration.onReactionPillTap]. Null keeps the
+  /// package's own bottom sheet.
+  final String? messageId;
 
   /// Provides configuration of reaction appearance in chat bubble.
   final MessageReactionConfiguration? messageReactionConfig;
@@ -72,15 +78,25 @@ class _ReactionWidgetState extends State<ReactionWidget> {
       bottom: 0,
       right: widget.isMessageBySender && needToExtend ? 0 : null,
       child: InkWell(
-        onTap: () => chatController != null
-            ? ReactionsBottomSheet().show(
-                context: context,
-                reaction: widget.reaction,
-                chatController: chatController!,
-                reactionsBottomSheetConfig:
-                    messageReactionConfig?.reactionsBottomSheetConfig,
-              )
-            : null,
+        onTap: () {
+          // chattr p24: hand the tap to the app when it asked for it, so the
+          // sheet can be one the app owns. Without a callback (or without a
+          // message id) this is exactly the upstream behaviour.
+          final onPillTap = messageReactionConfig?.onReactionPillTap;
+          final messageId = widget.messageId;
+          if (onPillTap != null && messageId != null) {
+            onPillTap(messageId);
+            return;
+          }
+          if (chatController == null) return;
+          ReactionsBottomSheet().show(
+            context: context,
+            reaction: widget.reaction,
+            chatController: chatController!,
+            reactionsBottomSheetConfig:
+                messageReactionConfig?.reactionsBottomSheetConfig,
+          );
+        },
         child: MeasureSize(
           onSizeChange: (extend) => setState(() => needToExtend = extend),
           child: Container(

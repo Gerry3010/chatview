@@ -55,6 +55,16 @@ class ProfileImageWidget extends StatelessWidget {
   /// to keep the built-in rule below.
   static Color? Function(Color background)? fallbackForegroundResolver;
 
+  /// chattr p25: app-injectable cache key for network avatars.
+  ///
+  /// [CachedNetworkImage] keys its disk cache on the URL. That is wrong the
+  /// moment the URL is a SIGNED one: every refreshed signature looks like a
+  /// new picture, so the same avatar is downloaded again and again and its
+  /// files accumulate without bound. Return a stable identity for the URL
+  /// (the storage path, say) — or null to keep keying on the URL. Set once at
+  /// app startup.
+  static String? Function(String url)? cacheKeyResolver;
+
   /// Allow user to set radius of circle avatar.
   final double? circleRadius;
 
@@ -107,6 +117,9 @@ class ProfileImageWidget extends StatelessWidget {
         ImageType.network when (imageUrl?.isNotEmpty ?? false) =>
           CachedNetworkImage(
             imageUrl: imageUrl ?? defaultAvatarImage,
+            // chattr p25: a signed URL changes on every refresh; without a
+            // stable key the disk cache would grow one copy per signature.
+            cacheKey: cacheKeyResolver?.call(imageUrl ?? defaultAvatarImage),
             height: radius,
             width: radius,
             fit: BoxFit.cover,

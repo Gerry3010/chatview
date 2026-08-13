@@ -38,6 +38,7 @@ class MessageReactionConfiguration {
     this.profileCircleRadius,
     this.profileCirclePadding,
     this.showReactedUserAvatars = true,
+    this.onReactionPillTap,
   });
 
   /// Used for giving size of reaction on message.
@@ -86,6 +87,15 @@ class MessageReactionConfiguration {
   /// avatars off the pill falls back to a plain count, and only when more than
   /// one person reacted.
   final bool showReactedUserAvatars;
+
+  /// Called instead of opening the package's own "who reacted" sheet when the
+  /// reaction pill is tapped, with the id of the message.
+  ///
+  /// Left null (the default) nothing changes: [ReactionsBottomSheet] opens as
+  /// before. Set it when the app wants to own that sheet — for instance to let
+  /// someone take their own reaction back, which needs the message id and a
+  /// live data source, neither of which the package's sheet has.
+  final ReactionPillTapCallback? onReactionPillTap;
 }
 
 class ReactionsBottomSheetConfiguration {

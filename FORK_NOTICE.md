@@ -250,6 +250,36 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   `src/models/config_models/chat_bubble_configuration.dart`,
   `src/widgets/chat_bubble_widget.dart`.
 
+- **App-owned reaction sheet** — tag `chattr-3.1.0-p24`.
+  `MessageReactionConfiguration.onReactionPillTap`
+  (`void Function(String messageId)?`) plus an optional
+  `ReactionWidget.messageId`. Tapping the reaction pill was hardwired to the
+  package's own `ReactionsBottomSheet`, and that sheet is a dead end for
+  anything beyond looking: it builds from an immutable `Reaction`, so a row
+  removed while it is open stays on screen, and its only hook —
+  `reactedUserCallback` — fires per row **without a message id**. An app that
+  wants to let someone take their own reaction back would have to search its
+  message list for a message carrying that (user, emoji) pair, which is
+  ambiguous the moment the same 👍 was used twice. With the callback set the
+  package hands the tap over, id included, and the app renders its own sheet
+  against live state; left null (the default) nothing changes. Also threads
+  `messageId` through the five `ReactionWidget` call sites.
+  `src/values/typedefs.dart`,
+  `src/models/config_models/message_reaction_configuration.dart`,
+  `src/widgets/reaction_widget.dart`, `src/widgets/text_message_view.dart`,
+  `src/widgets/image_message_view.dart`, `src/widgets/voice_message_view.dart`,
+  `src/widgets/message_view.dart`.
+
+- **Stable avatar cache key** — tag `chattr-3.1.0-p25`. Static
+  `ProfileImageWidget.cacheKeyResolver` (`String? Function(String url)?`), in
+  the same shape as the p20/p21 resolvers. `CachedNetworkImage` keys its disk
+  cache on the URL, which is correct only while avatar URLs are stable. Serve
+  them from a private bucket via **signed** URLs and every refreshed signature
+  reads as a new image: the same picture is downloaded again and its cache
+  files accumulate without bound. The resolver returns a stable identity for a
+  URL (the storage object path, say); null keeps keying on the URL, so the
+  default is unchanged. `src/widgets/profile_image_widget.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.
