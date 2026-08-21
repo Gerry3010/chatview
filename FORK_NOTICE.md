@@ -280,6 +280,21 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   URL (the storage object path, say); null keeps keying on the URL, so the
   default is unchanged. `src/widgets/profile_image_widget.dart`.
 
+- **Dimmable jump-to-message glow** — tag `chattr-3.1.0-p26`.
+  `RepliedMsgAutoScrollConfig.highlightGlowSpread` (default **2**) and
+  `highlightGlowBlur` (default 28), threaded through `ChatBubbleWidget` into
+  `MessageView`. The p18/p19 pulse drew two stacked `BoxShadow`s at
+  `spreadRadius` 4 and 8, hardcoded. `spreadRadius` inflates the shadow
+  rectangle *before* it is blurred, so it does not soften into the blur — it
+  adds to it. At 8 plus a 28px blur the glow reached roughly 20px past the
+  bubble, further than the gap between two bubbles, so the pulse lit up the
+  neighbours as well: it read as "somewhere around here" instead of "this one",
+  which defeats the point of a jump target. Blur is what makes it a glow rather
+  than a border, so only the spread came down; both radii are now the host
+  app's to set, which also means the next adjustment is one app-side line
+  rather than another tag. `src/models/config_models/replied_msg_auto_scroll_config.dart`,
+  `src/widgets/message_view.dart`, `src/widgets/chat_bubble_widget.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.

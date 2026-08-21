@@ -47,6 +47,24 @@ class RepliedMsgAutoScrollConfig {
   /// Alignment of the replied message when scrolled to.
   final double alignment;
 
+  /// How far the jump-to-message glow reaches BEYOND the bubble, in logical
+  /// pixels (the shadows' `spreadRadius`). Defaults to 2.
+  ///
+  /// This is the knob that decides whether the pulse points at ONE message or
+  /// lights up the neighbourhood: `spreadRadius` inflates the shadow rectangle
+  /// *before* it is blurred, so it adds to [highlightGlowBlur] rather than
+  /// softening into it. The p18/p19 default of 8 reached further than the gap
+  /// between two bubbles, which made the glow read as "somewhere around here"
+  /// instead of "this one".
+  final double highlightGlowSpread;
+
+  /// How soft the jump-to-message glow is (the shadows' `blurRadius`).
+  /// Defaults to 28.
+  ///
+  /// Blur is what makes it a glow rather than a border — reduce
+  /// [highlightGlowSpread] to make it smaller, not this.
+  final double highlightGlowBlur;
+
   /// Configuration for auto scrolling and highlighting a message when
   /// tapping on the original message above the replied message.
   const RepliedMsgAutoScrollConfig({
@@ -57,5 +75,7 @@ class RepliedMsgAutoScrollConfig {
     this.highlightScale = 1.1,
     this.highlightScrollCurve = Curves.easeIn,
     this.alignment = 0.5,
+    this.highlightGlowSpread = 2,
+    this.highlightGlowBlur = 28,
   });
 }

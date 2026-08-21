@@ -426,6 +426,12 @@ class _ChatBubbleWidgetState extends State<ChatBubbleWidget> {
         highlightScale: chatListConfig.repliedMessageConfig
                 ?.repliedMsgAutoScrollConfig.highlightScale ??
             1.1,
+        highlightGlowSpread: chatListConfig.repliedMessageConfig
+                ?.repliedMsgAutoScrollConfig.highlightGlowSpread ??
+            2,
+        highlightGlowBlur: chatListConfig.repliedMessageConfig
+                ?.repliedMsgAutoScrollConfig.highlightGlowBlur ??
+            28,
         onMaxDuration: _onMaxDuration,
         isFirstInGroup: widget.isFirstInGroup,
         isLastInGroup: widget.isLastInGroup,

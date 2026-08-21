@@ -50,6 +50,8 @@ class MessageView extends StatefulWidget {
     this.highlightColor = Colors.grey,
     this.shouldHighlight = false,
     this.highlightScale = 1.2,
+    this.highlightGlowSpread = 2,
+    this.highlightGlowBlur = 28,
     this.messageConfig,
     this.onMaxDuration,
     this.controller,
@@ -89,6 +91,11 @@ class MessageView extends StatefulWidget {
 
   /// Provides scale of highlighted image when user taps on replied image.
   final double highlightScale;
+
+  /// How far the jump-to-message glow reaches beyond the bubble, and how soft
+  /// it is. See [RepliedMsgAutoScrollConfig.highlightGlowSpread].
+  final double highlightGlowSpread;
+  final double highlightGlowBlur;
 
   /// Allow user to giving customisation different types
   /// messages.
@@ -191,20 +198,27 @@ class _MessageViewState extends State<MessageView>
             curve: Curves.easeInOut,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              // Stronger, clearly-visible bloom: a tight bright core + a wider
-              // soft halo. Two stacked shadows read as a proper glow rather than
-              // a faint shadow.
+              // A tight bright core plus a wider soft halo — two stacked
+              // shadows read as a proper glow rather than a faint shadow.
+              //
+              // p26: both radii are configurable, and the spread defaults far
+              // lower than the 4/8 this shipped with. `spreadRadius` inflates
+              // the shadow rectangle BEFORE blurring, so 8 + a 28px blur
+              // reached further than the gap between two bubbles: the pulse lit
+              // up the neighbourhood instead of pointing at one message. Blur
+              // carries the softness, spread carries the size — so only the
+              // latter came down.
               boxShadow: widget.shouldHighlight
                   ? [
                       BoxShadow(
                         color: widget.highlightColor,
-                        blurRadius: 12,
-                        spreadRadius: 4,
+                        blurRadius: widget.highlightGlowBlur * 0.43,
+                        spreadRadius: widget.highlightGlowSpread * 0.5,
                       ),
                       BoxShadow(
                         color: widget.highlightColor,
-                        blurRadius: 28,
-                        spreadRadius: 8,
+                        blurRadius: widget.highlightGlowBlur,
+                        spreadRadius: widget.highlightGlowSpread,
                       ),
                     ]
                   : const <BoxShadow>[],
