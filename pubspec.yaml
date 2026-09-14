@@ -16,6 +16,8 @@ environment:
   sdk: '>=3.4.0 <4.0.0'
 
 dependencies:
+  # p27: grapheme-cluster walk in emoji_text.dart (a joined emoji is one cluster).
+  characters: ^1.4.0
   any_link_preview: 3.0.3
   audio_waveforms: 2.0.2
   cached_network_image: 3.4.1

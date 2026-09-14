@@ -59,6 +59,35 @@ void main() {
     expect(runsOf('👨‍👩‍👧'), [('👨‍👩‍👧', true)]);
   });
 
+  test('ZWJ sequence whose tail is a BMP symbol stays ONE run (head-shake)', () {
+    // 🙂‍↕️ = 1F642 200D 2195 FE0F. Splitting per code point tore this apart at
+    // the ↕ (Arrows block, outside every emoji range), producing two spans with
+    // DIFFERENT font sizes — two shaping runs, so the font could never form the
+    // ligature and the bubble showed 🙂 + ↕️ side by side.
+    expect(runsOf('\u{1F642}\u{200D}\u{2195}\u{FE0F}'),
+        [('\u{1F642}\u{200D}\u{2195}\u{FE0F}', true)]);
+  });
+
+  test('ZWJ sequence inline with text keeps exactly one emoji run', () {
+    expect(
+      runsOf('na \u{1F642}\u{200D}\u{2195}\u{FE0F} nope'),
+      [('na ', false), ('\u{1F642}\u{200D}\u{2195}\u{FE0F}', true), (' nope', false)],
+    );
+  });
+
+  test('a BMP symbol with FE0F is an emoji on its own (\u{2195}\u{FE0F})', () {
+    expect(runsOf('\u{2195}\u{FE0F}'), [('\u{2195}\u{FE0F}', true)]);
+  });
+
+  test('keycap digit is one emoji run, not a text digit', () {
+    expect(runsOf('\u{0031}\u{FE0F}\u{20E3}'),
+        [('\u{0031}\u{FE0F}\u{20E3}', true)]);
+  });
+
+  test('FE0E asks for TEXT presentation — not upscaled', () {
+    expect(runsOf('\u{2764}\u{FE0E}'), [('\u{2764}\u{FE0E}', false)]);
+  });
+
   test('variation-selector heart stays one emoji run', () {
     expect(runsOf('❤️'), [('❤️', true)]);
   });

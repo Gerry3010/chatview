@@ -295,6 +295,22 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   rather than another tag. `src/models/config_models/replied_msg_auto_scroll_config.dart`,
   `src/widgets/message_view.dart`, `src/widgets/chat_bubble_widget.dart`.
 
+- **Joined emoji are never split across spans** — tag `chattr-3.1.0-p27`.
+  The p13 inline-emoji sizing walked the message **per code point** and started
+  a new span wherever emoji-ness changed. A ZWJ sequence whose tail is a BMP
+  symbol changes exactly there: 🙂‍↕️ is `1F642 200D 2195 FE0F`, and ↕ sits in
+  the Arrows block, outside every range `isEmojiRune` covers. The cluster came
+  apart into two spans with two different font sizes — two shaping runs, so the
+  font could no longer form the ligature it has, and the bubble showed 🙂
+  followed by ↕️. The walk is now over **grapheme clusters** (`package:characters`),
+  which is the unit a joined emoji actually is, and classification asks the
+  whole cluster instead of a single rune. Variation selectors decide first,
+  because they are the author's explicit statement about presentation: FE0F
+  makes a cluster emoji (which is the only thing that marks ↕️, ⏰ or 1️⃣ as one —
+  they carry no rune in the emoji planes at all), FE0E keeps it text. Bare BMP
+  symbols without a selector (→, ™) stay text as before.
+  `src/utils/emoji_text.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.
