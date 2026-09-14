@@ -311,6 +311,21 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   symbols without a selector (→, ™) stay text as before.
   `src/utils/emoji_text.dart`.
 
+- **A joined emoji on its own is "all emoji" again** — tag `chattr-3.1.0-p28`.
+  `isAllEmoji` decides whether a message is laid out LARGE and bare instead of
+  as text in a bubble. Upstream compared `runes.length` — code points — against
+  the number of emoji found, which `parseEmojis` counts in grapheme clusters.
+  For every emoji made of more than one code point the two could not possibly
+  agree: 🙂‍↕️ is four code points and one cluster, ❤️ two and one, 👍🏽 two and one,
+  a flag two and one. A single joined emoji was therefore never "all emoji" and
+  sat small inside a bubble with a timestamp beside it, while 😂 next to it
+  stood large and free. Counted in clusters now, and emoji-ness comes from
+  `isEmojiCluster` (p27) rather than the parser's bundled dataset — that dataset
+  ages, so an emoji it has not heard of would drop back into a bubble the year
+  its vintage ships. It also means one notion of "this is an emoji" for both the
+  sizing and the layout, which cannot disagree with itself.
+  `src/extensions/extensions.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.

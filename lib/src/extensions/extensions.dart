@@ -34,7 +34,7 @@ import '../models/config_models/chat_list/list_type_indicator_config.dart';
 import '../models/config_models/message_list_configuration.dart';
 import '../models/config_models/reply_suggestions_config.dart';
 import '../utils/constants/constants.dart';
-import '../utils/emoji_parser.dart';
+import '../utils/emoji_text.dart';
 import '../utils/package_strings.dart';
 import '../values/enumeration.dart';
 import '../widgets/chat_view_inherited_widget.dart';
@@ -112,15 +112,6 @@ extension ValidateString on String {
   /// reused instead of being recompiled on every call.
   static final RegExp _imageUrlRegExp = RegExp(imageUrlRegExpression);
 
-  /// Shared [EmojiParser] instance.
-  ///
-  /// The [EmojiParser] constructor decodes a large emoji JSON dataset and
-  /// builds lookup maps (thousands of entries). Previously a new instance was
-  /// created for every [isAllEmoji] call — which runs for every text bubble on
-  /// every rebuild — causing severe jank while scrolling. Reusing a single
-  /// instance removes that per-frame cost entirely.
-  static final EmojiParser _emojiParser = EmojiParser();
-
   bool get isImageUrl {
     return _imageUrlRegExp.hasMatch(this) || startsWith('data:image');
   }
@@ -142,14 +133,37 @@ extension ValidateString on String {
     return bytes == null ? null : MemoryImage(bytes);
   }
 
+  /// Whether the whole message is emoji — then it is laid out large and
+  /// bare instead of as text inside a bubble.
+  ///
+  /// chattr fork (p10): an empty string is NOT "all emoji". Upstream returned
+  /// true for '' (0 == 0), so empty custom messages (e.g. the "unread" divider)
+  /// hit the 30px emoji-bubble path and never reached customMessageBuilder,
+  /// rendering as a blank gap.
+  ///
+  /// chattr fork (p28): counted in GRAPHEME CLUSTERS, and emoji-ness is decided
+  /// by [isEmojiCluster] rather than by the parser's bundled dataset.
+  ///
+  /// Upstream compared `runes.length` — CODE POINTS — against the number of
+  /// emoji found, which `parseEmojis` counts in clusters. For every emoji made
+  /// of more than one code point the two could not possibly agree: 🙂‍↕️ is four
+  /// code points and one cluster, ❤️ two and one, 👍🏽 two and one, a flag two and
+  /// one. So a single joined emoji was never "all emoji" and sat small inside a
+  /// bubble with a timestamp beside it. It is the same confusion p27 fixed one
+  /// level down, where the same string was split for sizing.
+  ///
+  /// The dataset went with it because it ages: an emoji it has not heard of
+  /// (everything from E15.1 on) would be counted as non-emoji and the message
+  /// would fall back into a bubble the year its vintage ships. [isEmojiCluster]
+  /// asks the code points themselves, and it is the rule the sizing already
+  /// uses — one notion of "this is an emoji" for both, so a message cannot be
+  /// upscaled as emoji and laid out as text at the same time.
   bool get isAllEmoji {
-    // chattr fork (p10): an empty string is NOT "all emoji". Upstream returned
-    // true for '' (0 == 0), so empty custom messages (e.g. the "unread" divider)
-    // hit the 30px emoji-bubble path and never reached customMessageBuilder,
-    // rendering as a blank gap.
     if (runes.isEmpty) return false;
-    final unEmojified = _emojiParser.parseEmojis(this);
-    return runes.length == unEmojified.length;
+    for (final cluster in characters) {
+      if (!isEmojiCluster(cluster)) return false;
+    }
+    return true;
   }
 
   bool get isUrl {
