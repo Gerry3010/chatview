@@ -326,6 +326,19 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   sizing and the layout, which cannot disagree with itself.
   `src/extensions/extensions.dart`.
 
+- **Emoji runs take a whole style and keep the line height** — tag
+  `chattr-3.1.0-p29`. `ChatBubble.emojiStyle` is merged onto emoji runs and
+  wins over `emojiSize`, for corrections a size cannot express: on iOS, Apple
+  Color Emoji leaves a visible gap after itself that only a letter spacing
+  closes. With either one set, the paragraph now also gets a forced strut from
+  its text style. Measured with the host app's probe: an emoji at 1.125× pushed
+  a 20 px line to 23 px, at 1.0× with Nunito still to 21; with the strut every
+  line stays at the height of its text. A per-span height correction was tried
+  and left the Nunito case 1 px off. `emojiUpscaledSpans` and `isEmojiCluster`
+  are exported, so the app splits its composer and captions the same way.
+  `src/models/chat_bubble.dart`, `src/utils/emoji_text.dart`,
+  `src/widgets/text_message_view.dart`, `lib/chatview.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.

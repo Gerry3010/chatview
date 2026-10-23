@@ -100,4 +100,26 @@ void main() {
     expect(emojiUpscaledSpans('', emojiSize: 22), isEmpty);
     expect(emojiUpscaledSpans('', emojiSize: null), isEmpty);
   });
+
+  // chattr fork p29: a whole style instead of only a size.
+  test('emojiStyle lands on the emoji run and wins over emojiSize', () {
+    const style = TextStyle(fontSize: 18, letterSpacing: -1.5);
+    final spans = emojiUpscaledSpans(
+      'a\u201E🙂\u201C',
+      emojiSize: 30,
+      emojiStyle: style,
+    ).cast<TextSpan>();
+    expect(spans.map((s) => s.text), ['a\u201E', '🙂', '\u201C']);
+    expect(spans[1].style, style);
+    expect(spans[0].style, isNull);
+    expect(spans[2].style, isNull);
+  });
+
+  test('emojiStyle alone switches the splitting on', () {
+    final spans = emojiUpscaledSpans('x 😂',
+            emojiStyle: const TextStyle(letterSpacing: -1))
+        .cast<TextSpan>();
+    expect(spans.length, 2);
+    expect(spans.last.style!.letterSpacing, -1);
+  });
 }

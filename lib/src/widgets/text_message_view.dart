@@ -25,7 +25,6 @@ import 'package:flutter/material.dart';
 
 import '../extensions/extensions.dart';
 import '../utils/constants/constants.dart';
-import '../utils/emoji_text.dart';
 import 'link_preview.dart';
 import 'reaction_widget.dart';
 
@@ -99,6 +98,8 @@ class TextMessageView extends StatelessWidget {
           color: isMessageBySender ? Colors.white70 : Colors.black54,
         )
         .merge(_messageTimeTextStyle);
+    final bubbleConfig =
+        isMessageBySender ? outgoingChatBubbleConfig : inComingChatBubbleConfig;
     final effectiveTextStyle = _textStyle ??
         textTheme.bodyMedium?.copyWith(
           color: Colors.white,
@@ -116,12 +117,21 @@ class TextMessageView extends StatelessWidget {
             TextSpan(
               children: emojiUpscaledSpans(
                 textMessage,
-                emojiSize: isMessageBySender
-                    ? outgoingChatBubbleConfig?.emojiSize
-                    : inComingChatBubbleConfig?.emojiSize,
+                emojiSize: bubbleConfig?.emojiSize,
+                emojiStyle: bubbleConfig?.emojiStyle,
               ),
             ),
             style: effectiveTextStyle,
+            // chattr fork p29: emoji runs keep the line height of the text.
+            strutStyle: bubbleConfig?.emojiSize == null &&
+                    bubbleConfig?.emojiStyle == null
+                ? null
+                : StrutStyle.fromTextStyle(
+                    DefaultTextStyle.of(context)
+                        .style
+                        .merge(effectiveTextStyle),
+                    forceStrutHeight: true,
+                  ),
           );
     final messageWidget = isSelectable
         ? CustomSelectionArea(

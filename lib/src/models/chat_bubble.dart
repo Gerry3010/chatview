@@ -34,6 +34,7 @@ class ChatBubble {
     this.longMessageBorderRadius,
     this.textStyle,
     this.emojiSize,
+    this.emojiStyle,
     this.messageTimeTextStyle,
     this.padding,
     this.margin,
@@ -74,6 +75,16 @@ class ChatBubble {
   /// [textStyle]'s size). When null, emojis inherit the text size (default,
   /// unchanged behaviour). Only the size is overridden — colour etc. are kept.
   final double? emojiSize;
+
+  /// chattr fork p29: the full style merged onto EMOJI runs inside a text
+  /// message, for when the size alone is not enough (letter spacing that
+  /// closes the gap Apple Color Emoji leaves after itself, for one). Takes
+  /// precedence over [emojiSize].
+  ///
+  /// With either one set, the paragraph also keeps the line height of its
+  /// text (a forced strut from the text style): a larger emoji used to push
+  /// its line apart, by 3 px at 1.125× on a 20 px line, measured.
+  final TextStyle? emojiStyle;
 
   /// Used for giving text style of the message timestamp.
   ///

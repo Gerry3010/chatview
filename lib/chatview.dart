@@ -47,6 +47,9 @@ export 'src/extensions/extensions.dart' show MessageTypes;
 export 'src/models/models.dart';
 export 'src/utils/chat_view_locale.dart';
 export 'src/utils/package_strings.dart';
+// chattr p29: the host app splits its composer and captions the same way the
+// bubble does, so emoji look alike everywhere.
+export 'src/utils/emoji_text.dart' show emojiUpscaledSpans, isEmojiCluster;
 export 'src/values/enumeration.dart' hide ChatViewStateType;
 export 'src/values/typedefs.dart';
 export 'src/widgets/action_widgets/camera_action_button.dart';

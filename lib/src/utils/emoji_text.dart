@@ -19,8 +19,18 @@ import 'package:flutter/painting.dart';
 /// FE0F) broke at the ↕, which sits in the Arrows block outside every emoji
 /// range, and showed as 🙂 + ↕️. Classification now asks the whole cluster, so
 /// one emoji-looking rune anywhere in it carries the rest along.
-List<InlineSpan> emojiUpscaledSpans(String text, {double? emojiSize}) {
-  if (emojiSize == null) {
+///
+/// chattr fork p29: [emojiStyle] carries a whole style instead of a size (see
+/// `ChatBubble.emojiStyle`) and wins over [emojiSize]. Exported, so the host
+/// app splits its composer and captions exactly the same way.
+List<InlineSpan> emojiUpscaledSpans(
+  String text, {
+  double? emojiSize,
+  TextStyle? emojiStyle,
+}) {
+  final style =
+      emojiStyle ?? (emojiSize == null ? null : TextStyle(fontSize: emojiSize));
+  if (style == null) {
     return text.isEmpty ? const [] : [TextSpan(text: text)];
   }
   final spans = <InlineSpan>[];
@@ -32,7 +42,7 @@ List<InlineSpan> emojiUpscaledSpans(String text, {double? emojiSize}) {
     spans.add(
       TextSpan(
         text: buf.toString(),
-        style: (bufIsEmoji ?? false) ? TextStyle(fontSize: emojiSize) : null,
+        style: (bufIsEmoji ?? false) ? style : null,
       ),
     );
     buf.clear();
