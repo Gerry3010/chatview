@@ -339,6 +339,12 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   `src/models/chat_bubble.dart`, `src/utils/emoji_text.dart`,
   `src/widgets/text_message_view.dart`, `lib/chatview.dart`.
 
+- **intl as a range** — tag `chattr-3.1.0-p30`. Upstream pins `intl: 0.20.2`
+  exactly. Flutter 3.47's `flutter_localizations` requires `intl ^0.20.3`, so
+  with an exact pin no app on that SDK (which every app with localizations
+  needs, for a TLS fix in `dart:io` and a libpng update in the engine) could
+  resolve its dependencies. Now `^0.20.2`. `pubspec.yaml`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.

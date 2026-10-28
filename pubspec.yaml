@@ -27,7 +27,10 @@ dependencies:
   flutter:
     sdk: flutter
   image_picker: 1.2.2
-  intl: 0.20.2
+  # A range, not one exact version (p30): Flutter 3.47's flutter_localizations
+  # needs intl ^0.20.3, and an exact pin here made every app on that SDK
+  # unsolvable.
+  intl: ^0.20.2
   url_launcher: 6.3.2
 
 dev_dependencies:
