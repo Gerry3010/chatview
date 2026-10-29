@@ -345,6 +345,19 @@ Chattr-specific changes on top of upstream `3.1.0` (branch `chattr`):
   needs, for a TLS fix in `dart:io` and a libpng update in the engine) could
   resolve its dependencies. Now `^0.20.2`. `pubspec.yaml`.
 
+- **Receipt builder with the message** — tag `chattr-3.1.0-p31`.
+  `ReceiptsWidgetConfig.messageReceiptsBuilder` (`MessageReceiptBuilder =
+  Widget Function(Message message, MessageStatus status)`), next to the
+  existing `receiptsBuilder`, which only ever saw the status. All four
+  `MessageStatus` values already mean something (`undelivered` is the single
+  tick of a message the server has), so an app that tracks a state of its own
+  — a message that failed to send and offers a retry — had no way to draw it,
+  nor to tell which message a tap on the receipt was about. When both are
+  set, the new one wins; with neither, the default animation stays.
+  `src/values/typedefs.dart`,
+  `src/models/config_models/receipts_widget_config.dart`,
+  `src/widgets/chat_bubble_widget.dart`.
+
 Manual patches are tagged `chattr-3.1.0-pN`; the weekly auto-sync re-tags as
 `chattr-<upstream-version>` after rebasing these patches onto a new upstream
 release. See the `chattr` branch history for the exact diffs.

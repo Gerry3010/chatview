@@ -263,9 +263,13 @@ class _ChatBubbleWidgetState extends State<ChatBubbleWidget> {
   }
 
   Widget getReceipt() {
-    final showReceipts = chatListConfig.chatBubbleConfig
-            ?.outgoingChatBubbleConfig?.receiptsWidgetConfig?.showReceiptsIn ??
-        ShowReceiptsIn.lastMessage;
+    final receiptsConfig = chatListConfig
+        .chatBubbleConfig?.outgoingChatBubbleConfig?.receiptsWidgetConfig;
+    final showReceipts =
+        receiptsConfig?.showReceiptsIn ?? ShowReceiptsIn.lastMessage;
+    Widget? build(Message message, MessageStatus status) =>
+        receiptsConfig?.messageReceiptsBuilder?.call(message, status) ??
+        receiptsConfig?.receiptsBuilder?.call(status);
     if (showReceipts == ShowReceiptsIn.all) {
       return ValueListenableBuilder(
         valueListenable: widget.message.statusNotifier,
@@ -274,9 +278,7 @@ class _ChatBubbleWidgetState extends State<ChatBubbleWidget> {
                   ?.featureActiveConfig
                   .receiptsBuilderVisibility ??
               true) {
-            return chatListConfig.chatBubbleConfig?.outgoingChatBubbleConfig
-                    ?.receiptsWidgetConfig?.receiptsBuilder
-                    ?.call(value) ??
+            return build(widget.message, value) ??
                 sendMessageAnimationBuilder(value);
           }
           return const SizedBox();
@@ -291,9 +293,7 @@ class _ChatBubbleWidgetState extends State<ChatBubbleWidget> {
                     ?.featureActiveConfig
                     .receiptsBuilderVisibility ??
                 true) {
-              return chatListConfig.chatBubbleConfig?.outgoingChatBubbleConfig
-                      ?.receiptsWidgetConfig?.receiptsBuilder
-                      ?.call(value) ??
+              return build(chatController!.initialMessageList.last, value) ??
                   sendMessageAnimationBuilder(value);
             }
             return sendMessageAnimationBuilder(value);

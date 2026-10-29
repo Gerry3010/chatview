@@ -27,6 +27,7 @@ import '../../values/typedefs.dart';
 class ReceiptsWidgetConfig {
   const ReceiptsWidgetConfig({
     this.receiptsBuilder,
+    this.messageReceiptsBuilder,
     this.lastSeenAgoBuilder,
     this.showReceiptsIn = ShowReceiptsIn.lastMessage,
   });
@@ -36,6 +37,12 @@ class ReceiptsWidgetConfig {
   /// like instagram.
   /// By default [sendMessageAnimationBuilder]
   final ReceiptBuilder? receiptsBuilder;
+
+  /// Like [receiptsBuilder], but also receives the message. Wins over
+  /// [receiptsBuilder] when both are set. The status alone cannot say which
+  /// message it is about, nor carry a state the app keeps itself, such as a
+  /// message that failed to send and offers a retry.
+  final MessageReceiptBuilder? messageReceiptsBuilder;
 
   /// Just like Instagram messages receipts are displayed at the bottom of last
   /// message. If in case you want to modify it using your custom widget you can

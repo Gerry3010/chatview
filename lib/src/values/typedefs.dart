@@ -88,6 +88,14 @@ typedef SelectedImageViewBuilder = Widget Function(
 );
 typedef CustomMessageBuilder = Widget Function(Message message);
 typedef ReceiptBuilder = Widget Function(MessageStatus status);
+
+/// Like [ReceiptBuilder], but also handed the message the receipt belongs to,
+/// so an app can tell apart states it tracks itself (e.g. "failed to send")
+/// and react to a tap on that one message.
+typedef MessageReceiptBuilder = Widget Function(
+  Message message,
+  MessageStatus status,
+);
 typedef LastSeenAgoBuilder = Widget Function(
   Message message,
   String formattedDate,
